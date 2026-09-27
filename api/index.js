@@ -17,7 +17,6 @@ module.exports = async (req, res) => {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
     if (!BOT_TOKEN) {
-        console.error('TELEGRAM_BOT_TOKEN tidak ditemukan!');
         return res.status(200).json({ status: 'error', message: 'Missing bot token' });
     }
 
@@ -28,10 +27,10 @@ module.exports = async (req, res) => {
     if (cleanText.startsWith('hapus')) {
         const targetId = cleanText.split(' ')[1];
         if (!targetId || isNaN(targetId)) {
-            replyText = '❓ Sertakan ID transaksi yang ingin dihapus.\nContoh: `hapus 5`';
+            replyText = '❓ *Format Hapus Salah*\nGunakan: `hapus [ID]`\nContoh: `hapus 5`';
         } else {
             if (!process.env.DATABASE_URL) {
-                replyText = '❌ DATABASE_URL tidak ditemukan!';
+                replyText = '❌ `DATABASE_URL` belum diset di Vercel!';
             } else {
                 const client = new Client({
                     connectionString: process.env.DATABASE_URL,
@@ -43,7 +42,7 @@ module.exports = async (req, res) => {
                     await client.end();
 
                     if (resDb.rowCount > 0) {
-                        replyText = `🗑️ *Transaksi dengan ID ${targetId} berhasil dihapus!*`;
+                        replyText = `🗑️ *Transaksi ID ${targetId} Berhasil Dihapus!*`;
                     } else {
                         replyText = `⚠️ Transaksi dengan ID ${targetId} tidak ditemukan.`;
                     }
@@ -53,10 +52,24 @@ module.exports = async (req, res) => {
             }
         }
     } 
-    // 2. PARSER PEMASUKAN / PENGELUARAN & KATEGORI
+    // 2. PARSER PEMASUKAN & PENGELUARAN MENGGUNAKAN KATA AWALAN
     else {
-        // Mendukung format: "makan siang 25k", "makan siang 25k : Kuliner", atau "gaji 5jt : Kantor"
-        const match = cleanText.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(k|rb|ribu|jt|juta)?(?:\s*:\s*(.+))?$/i);
+        let type = 'expense'; // Default pengeluaran
+        let rawInput = text;
+
+        // Cek jika diawali kata "pemasukan"
+        if (cleanText.startsWith('pemasukan ')) {
+            type = 'income';
+            rawInput = text.substring(10).trim();
+        } 
+        // Cek jika diawali kata "pengeluaran"
+        else if (cleanText.startsWith('pengeluaran ')) {
+            type = 'expense';
+            rawInput = text.substring(12).trim();
+        }
+
+        // Match Regex: [Deskripsi] [Jumlah] : [Kategori Optional]
+        const match = rawInput.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(k|rb|ribu|jt|juta)?(?:\s*:\s*(.+))?$/i);
 
         if (match) {
             let title = match[1].trim();
@@ -64,46 +77,24 @@ module.exports = async (req, res) => {
             let unit = (match[3] || '').toLowerCase();
             let customCategory = match[4] ? match[4].trim() : null;
 
-            // Kalkulasi Jumlah
+            // Hitung Nominal Angka
             let amount = num;
             if (['k', 'rb', 'ribu'].includes(unit)) amount = num * 1000;
             if (['jt', 'juta'].includes(unit)) amount = num * 1000000;
 
-            let type = 'expense';
-            let category = 'Lainnya';
+            // Tentukan Kategori Default
+            let category = type === 'income' ? 'Pemasukan' : 'Pengeluaran';
 
-            // Deteksi Tipe (Pemasukan vs Pengeluaran)
-            const incomeKeywords = ['gaji', 'bonus', 'dapat', 'pemasukan', 'transfer', 'freelance', 'cuan', 'hasil', 'saham', 'dividen'];
-            const isIncome = incomeKeywords.some(keyword => title.includes(keyword));
-
-            if (isIncome) {
-                type = 'income';
-                category = 'Pemasukan';
-            } else {
-                // Katagorisasi Otomatis untuk Pengeluaran
-                if (title.includes('makan') || title.includes('minum') || title.includes('kopi') || title.includes('bakso') || title.includes('nasi')) {
-                    category = 'Makanan & Minuman';
-                } else if (title.includes('bensin') || title.includes('gojek') || title.includes('grab') || title.includes('parkir') || title.includes('tol')) {
-                    category = 'Transportasi';
-                } else if (title.includes('pulsa') || title.includes('kuota') || title.includes('wifi') || title.includes('listrik') || title.includes('air') || title.includes('token')) {
-                    category = 'Tagihan & Tagihan';
-                } else if (title.includes('belanja') || title.includes('baju') || title.includes('sepatu') || title.includes('tokped') || title.includes('shopee')) {
-                    category = 'Belanja';
-                } else if (title.includes('nonton') || title.includes('game') || title.includes('topup') || title.includes('bioskop')) {
-                    category = 'Hiburan';
-                }
-            }
-
-            // Jika user menuliskan kategori manual (menggunakan titik dua :), pakai kategori user
+            // Kategori Manual dari User (jika menggunakan tanda :)
             if (customCategory) {
                 category = customCategory.charAt(0).toUpperCase() + customCategory.slice(1);
             }
 
             title = title.charAt(0).toUpperCase() + title.slice(1);
 
-            // Simpan Ke Neon DB
+            // Simpan ke Neon DB
             if (!process.env.DATABASE_URL) {
-                replyText = '❌ *Error*: `DATABASE_URL` belum diset di Environment Variables Vercel!';
+                replyText = '❌ *Error*: `DATABASE_URL` belum diset di Vercel!';
             } else {
                 const client = new Client({
                     connectionString: process.env.DATABASE_URL,
@@ -118,18 +109,21 @@ module.exports = async (req, res) => {
                     );
                     await client.end();
 
-                    replyText = `✅ *Berhasil Dicatat!*\n\n📌 *Deskripsi*: ${title}\n💰 *Jumlah*: Rp ${amount.toLocaleString('id-ID')}\n🏷️ *Kategori*: ${category}\n📂 *Tipe*: ${type === 'income' ? '🟢 Pemasukan' : '🔴 Pengeluaran'}`;
+                    const icon = type === 'income' ? '🟢' : '🔴';
+                    const typeLabel = type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+
+                    replyText = `✅ *Berhasil Dicatat!*\n\n📌 *Deskripsi*: ${title}\n💰 *Jumlah*: Rp ${amount.toLocaleString('id-ID')}\n📂 *Tipe*: ${icon} ${typeLabel}\n🏷️ *Kategori*: ${category}`;
                 } catch (err) {
                     console.error('Database Error:', err);
                     replyText = `❌ *Gagal Simpan DB*:\n\`${err.message}\``;
                 }
             }
         } else {
-            replyText = '❓ *Format tidak dikenali.*\n\n*Contoh Penggunaan:*\n• `makan siang 25k`\n• `gaji 5jt : Kantor`\n• `beli sepatu 200k : Lifestyle`\n• `hapus 12` *(Menghapus ID 12)*';
+            replyText = `❓ *Format Tidak Dikenali*\n\n*Pemasukan:*\n• \`pemasukan Jual motor 13jt\`\n• \`pemasukan Gaji kantor 5jt : Pekerjaan\`\n\n*Pengeluaran:*\n• \`pengeluaran Beli motor 10jt\`\n• \`pengeluaran Beli bensin 50k : Transport\`\n\n*Hapus Data:*\n• \`hapus 12\``;
         }
     }
 
-    // Kirim Balasan Ke Telegram
+    // Balas ke Telegram
     try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
