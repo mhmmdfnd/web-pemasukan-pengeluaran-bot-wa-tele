@@ -3,25 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Keuangan Fanz.</title>
+    <title>Dashboard Keuangan Fanz</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .modal-animate {
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans relative">
 
     <!-- Header / Navbar -->
-    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-indigo-500/50 rounded-lg">
                     <i class="fa-solid fa-wallet text-2xl text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">KEUANGAN FANZ.</h1>
+                    <h1 class="text-xl font-bold tracking-tight">KEUANGAN FANZ</h1>
                     <p class="text-xs text-indigo-200">Telegram Bot Automation & Cloud Sync 2026</p>
                 </div>
             </div>
@@ -127,9 +136,31 @@
 
     </main>
 
+    <!-- MODAL KONFIRMASI CUSTOM TERLETAK TEPAT DI TENGAH -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 text-center modal-animate">
+            <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Hapus Transaksi?</h3>
+            <p id="modal-desc" class="text-xs text-slate-500 mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menghapus transaksi ini? Data yang dihapus tidak dapat dikembalikan.
+            </p>
+            <div class="flex items-center gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Batal
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2">
+                    <span>Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript Handler -->
     <script>
         let categoryChartInstance = null;
+        let pendingDeleteId = null;
 
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID', {
@@ -171,35 +202,53 @@
             }
         }
 
-        // FUNGSI UNTUK MENGHAPUS TRANSAKSI LANGSUNG DARI WEB
-        async function deleteTransaction(id, title) {
-            if (!confirm(`Apakah Anda yakin ingin menghapus transaksi "${title}" (ID #${id})?`)) {
-                return;
-            }
+        // Buka Modal Hapus Custom
+        function openDeleteModal(id, title) {
+            pendingDeleteId = id;
+            document.getElementById('modal-desc').innerText = `Apakah Anda yakin ingin menghapus "${title}" (ID #${id})?`;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        // Tutup Modal
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        // Eksekusi Hapus Transaksi
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            if (!pendingDeleteId) return;
+
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-sm"></i> Menghapus...`;
 
             try {
-                // Mengirimkan request hapus ke API backend
                 const response = await fetch('/api/index', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: {
                             chat: { id: 0 },
-                            text: `hapus ${id}`
+                            text: `hapus ${pendingDeleteId}`
                         }
                     })
                 });
 
                 if (response.ok) {
-                    loadTransactions(); // Refresh data otomatis setelah hapus
+                    closeDeleteModal();
+                    loadTransactions();
                 } else {
                     alert('Gagal menghapus transaksi.');
                 }
             } catch (error) {
                 console.error('Error deleting:', error);
                 alert('Terjadi kesalahan saat menghapus.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Hapus</span>`;
             }
-        }
+        });
 
         function renderDashboard(transactions) {
             const tableBody = document.getElementById('transaction-rows');
@@ -236,7 +285,6 @@
                     categoryTotals[cat] = (categoryTotals[cat] || 0) + amount;
                 }
 
-                // Meloloskan tanda petik agar tidak merusak fungsi JS
                 const safeTitle = item.title.replace(/'/g, "\\'");
 
                 rowsHtml += `
@@ -258,7 +306,7 @@
                             ${isIncome ? '+' : '-'} ${formatRupiah(amount)}
                         </td>
                         <td class="p-3.5 text-center">
-                            <button onclick="deleteTransaction(${item.id}, '${safeTitle}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Transaksi">
+                            <button onclick="openDeleteModal(${item.id}, '${safeTitle}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Transaksi">
                                 <i class="fa-regular fa-trash-can text-sm"></i>
                             </button>
                         </td>
