@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     
     let transactions = [];
     if (username) {
-      // Hanya ambil transaksi milik user yang sedang login
+      // Mengambil transaksi milik user tertentu saja
       transactions = await sql`
         SELECT id, title, amount, type, category, created_at, username 
         FROM transactions 
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         ORDER BY id DESC
       `;
     } else {
+      // Jika tidak ada username, kembalikan kosong atau semua (untuk admin)
       transactions = await sql`
         SELECT id, title, amount, type, category, created_at, username 
         FROM transactions 
