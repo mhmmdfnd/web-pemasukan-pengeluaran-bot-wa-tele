@@ -1016,6 +1016,45 @@
             document.getElementById('add-target-savings-modal').classList.add('hidden');
         }
 
+        async function submitTargetDeposit() {
+            if (!activeTargetDepositId) return;
+
+            const depositVal = parseRupiahNumber(document.getElementById('deposit-amount').value);
+            if (depositVal <= 0) return;
+
+            let targetObj = null;
+
+            targetBudgets = targetBudgets.map(t => {
+                if (t.id === activeTargetDepositId) {
+                    targetObj = t;
+                    const updatedSaved = (t.currentSaved || 0) + depositVal;
+                    return { ...t, currentSaved: updatedSaved };
+                }
+                return t;
+            });
+
+            localStorage.setItem(`target_budgets_${currentUser.username}`, JSON.stringify(targetBudgets));
+            closeTargetDepositModal();
+            renderTargets();
+
+            if (targetObj && currentUser) {
+                try {
+                    await fetch('/api/index', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: { chat: { id: currentUser.chatId ? currentUser.chatId : 0 }, text: `pengeluaran Tabungan ${targetObj.name} ${depositVal}` },
+                            bot_token: currentUser.botToken || '',
+                            username: currentUser.username
+                        })
+                    });
+                    loadTransactions();
+                } catch (err) {
+                    console.error("Gagal mencatat setor tabungan:", err);
+                }
+            }
+        }
+
         function renderTargets() {
             const container = document.getElementById('target-list-container');
             if (!container) return;
@@ -1098,6 +1137,109 @@
             renderDebts();
         }
 
+        function openPayInstallmentModal(id, name) {
+            activePayDebtId = id;
+            document.getElementById('pay-target-name').innerText = `Pembayaran cicilan untuk: ${name}`;
+            document.getElementById('pay-amount').value = '';
+            document.getElementById('pay-note').value = '';
+            document.getElementById('pay-installment-modal').classList.remove('hidden');
+        }
+
+        function closePayInstallmentModal() {
+            activePayDebtId = null;
+            document.getElementById('pay-installment-modal').classList.add('hidden');
+        }
+
+        async function submitInstallmentPayment() {
+            if (!activePayDebtId) return;
+
+            const payAmount = parseRupiahNumber(document.getElementById('pay-amount').value);
+            const bankMethod = document.getElementById('pay-bank').value || 'Cash';
+            const note = document.getElementById('pay-note').value || 'Cicilan / Angsuran';
+
+            if (payAmount <= 0) return;
+
+            let debtObj = null;
+
+            debts = debts.map(item => {
+                if (item.id === activePayDebtId) {
+                    debtObj = item;
+                    const newAmount = Math.max(0, item.amount - payAmount);
+                    const newHistory = item.history || [];
+                    newHistory.unshift({
+                        id: Date.now(),
+                        date: new Date().toISOString(),
+                        amount: payAmount,
+                        bank: bankMethod,
+                        note: note,
+                        remaining: newAmount
+                    });
+                    return { ...item, amount: newAmount, history: newHistory };
+                }
+                return item;
+            }).filter(item => item.amount > 0 || (item.history && item.history.length > 0));
+
+            localStorage.setItem(`debts_${currentUser.username}`, JSON.stringify(debts));
+            closePayInstallmentModal();
+            renderDebts();
+
+            if (debtObj && currentUser) {
+                try {
+                    const txtFormat = debtObj.type === 'utang' ? `pengeluaran Bayar Utang ${debtObj.name} ${payAmount}` : `pemasukan Pelunasan Piutang ${debtObj.name} ${payAmount}`;
+                    await fetch('/api/index', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: { chat: { id: currentUser.chatId ? currentUser.chatId : 0 }, text: txtFormat },
+                            bot_token: currentUser.botToken || '',
+                            username: currentUser.username
+                        })
+                    });
+                    loadTransactions();
+                } catch (err) {
+                    console.error("Gagal mencatat pembayaran utang:", err);
+                }
+            }
+        }
+
+        function openHistoryModal(id) {
+            const item = debts.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('history-debt-name').innerText = `${item.name} (${item.type === 'utang' ? 'Utang Saya' : 'Piutang'})`;
+            const container = document.getElementById('history-list-container');
+
+            if (!item.history || item.history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada riwayat pembayaran.</p>`;
+            } else {
+                let html = '';
+                item.history.forEach(h => {
+                    html += `
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 block">${h.note}</span>
+                                    <span class="text-[9px] bg-indigo-100 text-indigo-700 font-bold px-1 rounded">${h.bank || 'Cash'}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400">${formatDate(h.date)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400 block">- ${formatRupiah(h.amount)}</span>
+                                <span class="text-[10px] text-slate-400">Sisa: ${formatRupiah(h.remaining)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+
+            document.getElementById('history-modal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.add('hidden');
+        }
+
         function renderDebts() {
             const container = document.getElementById('debt-rows');
             if (!container) return;
@@ -1121,9 +1263,18 @@
                             </span>
                         </td>
                         <td class="p-3 font-bold">${formatRupiah(item.amount)}</td>
-                        <td class="p-3 text-xs text-indigo-600">${historyCount} Riwayat</td>
-                        <td class="p-3 text-center">
-                            <button onclick="openDeleteDebtModal(${item.id}, '${safeName}')" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition"><i class="fa-regular fa-trash-can"></i></button>
+                        <td class="p-3">
+                            <button onclick="openHistoryModal(${item.id})" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-clock-rotate-left"></i> ${historyCount} Riwayat
+                            </button>
+                        </td>
+                        <td class="p-3 text-center flex items-center justify-center gap-1.5">
+                            <button onclick="openPayInstallmentModal(${item.id}, '${safeName}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+                                Bayar Cicilan
+                            </button>
+                            <button onclick="openDeleteDebtModal(${item.id}, '${safeName}')" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition" title="Hapus">
+                                <i class="fa-regular fa-trash-can text-sm"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
