@@ -283,7 +283,7 @@
                     </div>
                 </section>
 
-                <!-- Section Grafik Donut & Breakdown Tabel Transaksi (Dengan Scroll Tabel) -->
+                <!-- Section Grafik Donut & Breakdown Tabel Transaksi -->
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 lg:col-span-1 flex flex-col justify-between">
                         <div>
@@ -297,6 +297,7 @@
                         </div>
                     </div>
 
+                    <!-- KOTAK RIWAYAT TRANSAKSI DENGAN ISI SCROLL DI DALAM SAJA -->
                     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 lg:col-span-2 overflow-hidden flex flex-col">
                         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">
                             <div>
@@ -307,11 +308,10 @@
                             </div>
                         </div>
 
-                        <!-- CONTAINER DENGAN FITUR SCROLL KE BAWAH -->
-                        <div class="max-h-[380px] overflow-y-auto overflow-x-auto flex-1">
+                        <div class="overflow-x-auto flex-1">
                             <table class="w-full text-left border-collapse">
-                                <thead class="sticky top-0 bg-slate-100 dark:bg-slate-700 z-10">
-                                    <tr class="text-slate-500 dark:text-slate-300 text-xs uppercase tracking-wider font-semibold">
+                                <thead class="bg-slate-100/70 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <tr>
                                         <th class="p-3.5">ID</th>
                                         <th class="p-3.5">Tanggal</th>
                                         <th class="p-3.5">Deskripsi</th>
@@ -320,15 +320,20 @@
                                         <th class="p-3.5 text-center">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="transaction-rows" class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
-                                    <tr>
-                                        <td colspan="6" class="p-8 text-center text-slate-400">
-                                            <i class="fa-solid fa-circle-notch animate-spin text-indigo-600 text-2xl"></i>
-                                            <p class="mt-2 text-xs font-medium">Memuat data...</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
                             </table>
+                            <!-- KONTAINER ISI BARIS SAJA YANG BISA DI-SCROLL -->
+                            <div class="max-h-[300px] overflow-y-auto overflow-x-hidden">
+                                <table class="w-full text-left border-collapse">
+                                    <tbody id="transaction-rows" class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
+                                        <tr>
+                                            <td colspan="6" class="p-8 text-center text-slate-400">
+                                                <i class="fa-solid fa-circle-notch animate-spin text-indigo-600 text-2xl"></i>
+                                                <p class="mt-2 text-xs font-medium">Memuat data...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </section>
