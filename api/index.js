@@ -11,6 +11,7 @@ export default async function handler(req, res) {
   }
 
   const databaseUrl = process.env.DATABASE_URL;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
   if (req.method === 'GET') {
     return res.status(200).json({ status: 'API is running' });
@@ -23,11 +24,23 @@ export default async function handler(req, res) {
         return res.status(200).json({ status: 'No message text' });
       }
 
+      const chatId = update.message.chat.id;
       const text = update.message.text.trim();
       const usernameFromReq = req.body.username || 'admin';
 
+      // Fungsi pembantu untuk mengirim pesan balasan ke Telegram
+      const sendTelegramMessage = async (msg) => {
+        if (!botToken) return;
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: msg })
+        });
+      };
+
       if (text.toLowerCase() === '/start') {
-        return res.status(200).json({ status: 'Started command received' });
+        await sendTelegramMessage("Halo! Bot pencatat keuangan aktif. Kirim format:\nmakan siang 25000\natau\npemasukan gaji 5000000 : Gaji");
+        return res.status(200).json({ status: 'Started' });
       }
 
       let type = 'expense';
@@ -61,9 +74,11 @@ export default async function handler(req, res) {
       }
 
       if (!title || amount <= 0) {
+        await sendTelegramMessage("Format tidak valid! Contoh: makan 15000 atau pemasukan gaji 2000000 : Gaji");
         return res.status(200).json({ status: 'Format tidak valid' });
       }
 
+      // Simpan ke database Neon DB
       if (databaseUrl) {
         const sql = neon(databaseUrl);
         await sql`
@@ -72,10 +87,13 @@ export default async function handler(req, res) {
         `;
       }
 
+      // Kirim konfirmasi berhasil ke Telegram
+      const formatRupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+      await sendTelegramMessage(`✅ Berhasil dicatat!\n• ${title}\n• ${type === 'income' ? 'Pemasukan' : 'Pengeluaran'}: ${formatRupiah}\n• Kategori: ${category}`);
+
       return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Webhook Error:', error);
-      // Tetap kembalikan 200 agar Telegram tidak melakukan retry terus-menerus
       return res.status(200).json({ error: error.message });
     }
   }
