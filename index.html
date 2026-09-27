@@ -63,7 +63,7 @@
         <section class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-filter text-indigo-600 dark:text-indigo-400 text-base"></i>
-                <h3 class="font-bold text-sm text-slate-800 dark:text-white">Filter Tanggal Laporan</h3>
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white">Filter Tanggal Ringkasan & Kategori</h3>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-xs w-full md:w-auto">
                 <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-700 p-1.5 rounded-xl border border-slate-200 dark:border-slate-600">
@@ -143,50 +143,41 @@
                 </div>
             </div>
 
-            <!-- Cash Flow Statement + Bar Chart -->
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between">
+            <!-- Cash Flow Statement + Bar Chart DENGAN FILTER TANGGAL LENGKAP -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between space-y-4">
                 <div>
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-2">
                         <div>
                             <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
                                 <i class="fa-solid fa-chart-column text-indigo-600 dark:text-indigo-400"></i> Flow & Statement
                             </h3>
-                            <p class="text-xs text-slate-400">Laporan Grafik Nominal Rupiah</p>
-                        </div>
-                        
-                        <div class="flex items-center gap-2">
-                            <select id="filter-month" onchange="updateFlowBarChart()" class="p-1.5 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none">
-                                <option value="all">Semua Bulan</option>
-                                <option value="0">Januari</option>
-                                <option value="1">Februari</option>
-                                <option value="2">Maret</option>
-                                <option value="3">April</option>
-                                <option value="4">Mei</option>
-                                <option value="5">Juni</option>
-                                <option value="6">Juli</option>
-                                <option value="7">Agustus</option>
-                                <option value="8">September</option>
-                                <option value="9">Oktober</option>
-                                <option value="10">November</option>
-                                <option value="11">Desember</option>
-                            </select>
-
-                            <select id="filter-year" onchange="updateFlowBarChart()" class="p-1.5 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none">
-                                <option value="2026" selected>2026</option>
-                                <option value="2025">2025</option>
-                                <option value="2024">2024</option>
-                            </select>
+                            <p class="text-xs text-slate-400">Laporan Grafik Nominal Rupiah Per Tanggal</p>
                         </div>
                     </div>
 
-                    <div class="relative w-full h-56">
+                    <!-- Filter Tanggal Khusus Flow Statement -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-50 dark:bg-slate-700/50 p-2 rounded-xl border border-slate-100 dark:border-slate-700 mb-3">
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400 text-[11px]">Dari:</span>
+                            <input type="date" id="flow-start-date" onchange="updateFlowBarChart()" class="bg-transparent text-slate-800 dark:text-white outline-none text-xs">
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400 text-[11px]">Sampai:</span>
+                            <input type="date" id="flow-end-date" onchange="updateFlowBarChart()" class="bg-transparent text-slate-800 dark:text-white outline-none text-xs">
+                        </div>
+                        <button onclick="resetFlowDateFilter()" class="py-1 px-2 bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-lg text-[10px] font-semibold transition ml-auto">
+                            Reset
+                        </button>
+                    </div>
+
+                    <div class="relative w-full h-48">
                         <canvas id="flowBarChart"></canvas>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION: PINJAMAN & UTANG (DENGAN TOMBOL HAPUS DATA) -->
+        <!-- SECTION: PINJAMAN & UTANG -->
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 p-6">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
                 <div>
@@ -226,9 +217,12 @@
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Chart Pengeluaran per Kategori -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 lg:col-span-1 flex flex-col justify-between">
-                <h3 class="font-bold text-slate-800 dark:text-white text-base mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-pie text-indigo-600 dark:text-indigo-400"></i> Kategori Pengeluaran
-                </h3>
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-white text-base mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-600 dark:text-indigo-400"></i> Kategori Pengeluaran
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">*Sesuai filter tanggal ringkasan</p>
+                </div>
                 <div class="relative w-full h-64 flex items-center justify-center">
                     <canvas id="categoryChart"></canvas>
                 </div>
@@ -390,7 +384,7 @@
         </div>
     </div>
 
-    <!-- MODAL PEMBAYARAN CICILAN UTANG (DENGAN PILIHAN METODE PEMBAYARAN) -->
+    <!-- MODAL PEMBAYARAN CICILAN UTANG -->
     <div id="pay-installment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -450,7 +444,7 @@
         </div>
     </div>
 
-    <!-- MODAL KONFIRMASI HAPUS TRANSAKSI UTANG/PIUTANG (BARU) -->
+    <!-- MODAL KONFIRMASI HAPUS TRANSAKSI UTANG/PIUTANG -->
     <div id="delete-debt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 text-center modal-animate">
             <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -610,12 +604,13 @@
                 const data = await response.json();
                 globalTransactions = data;
                 applyGlobalDateFilter();
+                updateFlowBarChart();
             } catch (error) {
                 console.error('Error loading data:', error);
             }
         }
 
-        // FITUR FILTER TANGGAL LENGKAP
+        // FILTER TANGGAL RINGKASAN & KATEGORI
         function applyGlobalDateFilter() {
             const startDateVal = document.getElementById('filter-start-date').value;
             const endDateVal = document.getElementById('filter-end-date').value;
@@ -641,6 +636,84 @@
             document.getElementById('filter-start-date').value = '';
             document.getElementById('filter-end-date').value = '';
             renderDashboard(globalTransactions);
+        }
+
+        // FILTER TANGGAL KHUSUS FLOW STATEMENT
+        function resetFlowDateFilter() {
+            document.getElementById('flow-start-date').value = '';
+            document.getElementById('flow-end-date').value = '';
+            updateFlowBarChart();
+        }
+
+        function updateFlowBarChart() {
+            const startDateVal = document.getElementById('flow-start-date').value;
+            const endDateVal = document.getElementById('flow-end-date').value;
+
+            let filtered = globalTransactions;
+
+            if (startDateVal) {
+                const start = new Date(startDateVal);
+                start.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => new Date(item.created_at) >= start);
+            }
+
+            if (endDateVal) {
+                const end = new Date(endDateVal);
+                end.setHours(23, 59, 59, 999);
+                filtered = filtered.filter(item => new Date(item.created_at) <= end);
+            }
+
+            let filteredInc = 0;
+            let filteredExp = 0;
+
+            filtered.forEach(item => {
+                const amount = Number(item.amount) || 0;
+                if (item.type === 'income') {
+                    filteredInc += amount;
+                } else {
+                    filteredExp += amount;
+                }
+            });
+
+            const filteredNet = filteredInc - filteredExp;
+            renderFlowBarChart(filteredInc, filteredExp, filteredNet);
+        }
+
+        function renderFlowBarChart(income, expense, net) {
+            const ctx = document.getElementById('flowBarChart').getContext('2d');
+            if (flowBarChartInstance) flowBarChartInstance.destroy();
+
+            Chart.register(ChartDataLabels);
+
+            flowBarChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran', 'Saldo Bersih'],
+                    datasets: [{
+                        data: [income, expense, net],
+                        backgroundColor: ['#10b981', '#ef4444', '#6366f1'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'start',
+                            offset: -20,
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: function(value) {
+                                return formatRupiah(value);
+                            }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
         }
 
         // Modals Handler
@@ -778,7 +851,6 @@
             }
         }
 
-        // HAPUS DATA UTANG/PIUTANG
         function openDeleteDebtModal(id, name) {
             pendingDeleteDebtId = id;
             document.getElementById('debt-delete-desc').innerText = `Apakah Anda yakin ingin menghapus catatan utang/piutang "${name}"?`;
@@ -811,7 +883,6 @@
             document.getElementById('pay-installment-modal').classList.add('hidden');
         }
 
-        // SUBMIT CICILAN DENGAN METODE PEMBAYARAN BANK
         async function submitInstallmentPayment() {
             if (!activePayDebtId) return;
 
@@ -969,6 +1040,7 @@
                 document.getElementById('total-saldo').innerText = 'Rp 0';
                 document.getElementById('total-pemasukan').innerText = 'Rp 0';
                 document.getElementById('total-pengeluaran').innerText = 'Rp 0';
+                renderChart({});
                 return;
             }
 
@@ -1021,73 +1093,7 @@
 
             tableBody.innerHTML = rowsHtml;
             renderChart(categoryTotals);
-            updateFlowBarChart();
             renderTargets();
-        }
-
-        function updateFlowBarChart() {
-            const selectedMonth = document.getElementById('filter-month').value;
-            const selectedYear = Number(document.getElementById('filter-year').value);
-
-            let filteredInc = 0;
-            let filteredExp = 0;
-
-            globalTransactions.forEach(item => {
-                if (!item.created_at) return;
-                const date = new Date(item.created_at);
-                
-                const matchYear = date.getFullYear() === selectedYear;
-                const matchMonth = selectedMonth === 'all' || date.getMonth() === Number(selectedMonth);
-
-                if (matchYear && matchMonth) {
-                    const amount = Number(item.amount) || 0;
-                    if (item.type === 'income') {
-                        filteredInc += amount;
-                    } else {
-                        filteredExp += amount;
-                    }
-                }
-            });
-
-            const filteredNet = filteredInc - filteredExp;
-            renderFlowBarChart(filteredInc, filteredExp, filteredNet);
-        }
-
-        function renderFlowBarChart(income, expense, net) {
-            const ctx = document.getElementById('flowBarChart').getContext('2d');
-            if (flowBarChartInstance) flowBarChartInstance.destroy();
-
-            Chart.register(ChartDataLabels);
-
-            flowBarChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Pemasukan', 'Pengeluaran', 'Saldo Bersih'],
-                    datasets: [{
-                        data: [income, expense, net],
-                        backgroundColor: ['#10b981', '#ef4444', '#6366f1'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'start',
-                            offset: -20,
-                            color: '#ffffff',
-                            font: { weight: 'bold', size: 10 },
-                            formatter: function(value) {
-                                return formatRupiah(value);
-                            }
-                        }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
         }
 
         function renderChart(categoryData) {
@@ -1096,7 +1102,10 @@
             const values = Object.values(categoryData);
 
             if (categoryChartInstance) categoryChartInstance.destroy();
-            if (labels.length === 0) return;
+
+            if (labels.length === 0) {
+                return;
+            }
 
             categoryChartInstance = new Chart(ctx, {
                 type: 'doughnut',
