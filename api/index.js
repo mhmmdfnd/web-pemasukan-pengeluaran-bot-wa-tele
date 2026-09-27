@@ -14,19 +14,18 @@ export default async function handler(req, res) {
     return res.status(200).json({ status: 'Bot API is online' });
   }
 
+  const databaseUrl = process.env.DATABASE_URL;
+  const sql = databaseUrl ? neon(databaseUrl) : null;
+
   if (req.method === 'POST') {
     try {
       const update = req.body;
-      if (!update || !update.message || !update.message.text) {
-        return res.status(200).json({ status: 'No message text' });
-      }
-
-      const chatId = update.message.chat.id;
-      const text = update.message.text.trim();
+      const text = update && update.message && update.message.text ? update.message.text.trim() : (update && update.text ? update.text.trim() : '');
+      const chatId = update && update.message && update.message.chat ? update.message.chat.id : 0;
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
       const replyTelegram = async (msg) => {
-        if (!botToken) return;
+        if (!botToken || !chatId) return;
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -34,16 +33,29 @@ export default async function handler(req, res) {
         });
       };
 
+      if (!text) {
+        return res.status(200).json({ status: 'No text' });
+      }
+
+      // 1. CEK PERINTAH HAPUS (Contoh: "hapus 49")
+      if (text.toLowerCase().startsWith('hapus')) {
+        const idTarget = text.replace(/hapus/i, '').trim();
+        if (idTarget && sql) {
+          await sql`DELETE FROM transactions WHERE id = ${idTarget}`;
+        }
+        if (chatId) await replyTelegram(`🗑️ Transaksi #${idTarget} berhasil dihapus.`);
+        return res.status(200).json({ success: true, deleted: idTarget });
+      }
+
       if (text.toLowerCase() === '/start') {
         await replyTelegram("Halo! Bot keuangan aktif. Contoh format:\n• pengeluaran makan 10k\n• pemasukan gaji 5jt");
         return res.status(200).json({ success: true });
       }
 
       let type = 'expense';
-      let category = 'Pengeluaran'; // Default kategori
+      let category = 'Pengeluaran';
       let cleanText = text;
 
-      // Deteksi awalan pemasukan / pengeluaran
       if (text.toLowerCase().startsWith('pemasukan')) {
         type = 'income';
         category = 'Pemasukan';
@@ -55,14 +67,13 @@ export default async function handler(req, res) {
       }
 
       const words = cleanText.split(/\s+/);
-      const rawAmountStr = words.pop(); // Ambil kata terakhir sebagai nominal
+      const rawAmountStr = words.pop();
       let title = words.join(' ');
 
       if (!title) {
         title = cleanText;
       }
 
-      // Fungsi konverter angka (mendukung k, rb, jt)
       const parseAmount = (str) => {
         if (!str) return 0;
         let lower = str.toLowerCase().replace(/rp/g, '').trim();
@@ -88,18 +99,11 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
       }
 
-      // Simpan ke database Neon DB
-      const databaseUrl = process.env.DATABASE_URL;
-      if (databaseUrl) {
-        try {
-          const sql = neon(databaseUrl);
-          await sql`
-            INSERT INTO transactions (title, amount, type, category, username)
-            VALUES (${title}, ${amount}, ${type}, ${category}, 'admin')
-          `;
-        } catch (dbErr) {
-          console.error("Database insert error:", dbErr);
-        }
+      if (sql) {
+        await sql`
+          INSERT INTO transactions (title, amount, type, category, username)
+          VALUES (${title}, ${amount}, ${type}, ${category}, 'admin')
+        `;
       }
 
       const formatRp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
