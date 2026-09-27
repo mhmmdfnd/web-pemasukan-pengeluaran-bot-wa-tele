@@ -1,12 +1,8 @@
 {
-  "name": "keuangan-app",
+  "name": "financial-tracker-pro",
   "version": "1.0.0",
-  "description": "Aplikasi Pencatat Keuangan - Sync Telegram & Neon DB",
-  "main": "api/index.js",
-  "scripts": {
-    "start": "node api/index.js"
-  },
+  "private": true,
   "dependencies": {
-    "pg": "^8.11.3"
+    "@neondatabase/serverless": "^0.9.0"
   }
 }
