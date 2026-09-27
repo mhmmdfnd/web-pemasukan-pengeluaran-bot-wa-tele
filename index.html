@@ -59,6 +59,27 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+        <!-- FILTER GLOBAL TANGGAL & HARI -->
+        <section class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-filter text-indigo-600 dark:text-indigo-400 text-base"></i>
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white">Filter Tanggal Laporan</h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs w-full md:w-auto">
+                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-700 p-1.5 rounded-xl border border-slate-200 dark:border-slate-600">
+                    <span class="text-slate-400">Dari:</span>
+                    <input type="date" id="filter-start-date" onchange="applyGlobalDateFilter()" class="bg-transparent text-slate-800 dark:text-white outline-none">
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-700 p-1.5 rounded-xl border border-slate-200 dark:border-slate-600">
+                    <span class="text-slate-400">Sampai:</span>
+                    <input type="date" id="filter-end-date" onchange="applyGlobalDateFilter()" class="bg-transparent text-slate-800 dark:text-white outline-none">
+                </div>
+                <button onclick="resetGlobalDateFilter()" class="py-1.5 px-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition">
+                    Reset
+                </button>
+            </div>
+        </section>
+
         <!-- Ringkasan Keuangan Cards -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <!-- Card 1: Total Penghasilan -->
@@ -66,7 +87,7 @@
                 <div>
                     <p class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Total Penghasilan (Murni)</p>
                     <h2 id="total-pemasukan" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">Rp 0</h2>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Tanpa dipotong pengeluaran</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Sesuai filter tanggal</p>
                 </div>
                 <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
                     <i class="fa-solid fa-money-bill-trend-up text-xl"></i>
@@ -78,7 +99,7 @@
                 <div>
                     <p class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Total Pengeluaran</p>
                     <h2 id="total-pengeluaran" class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">Rp 0</h2>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Akumulasi pengeluaran</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Sesuai filter tanggal</p>
                 </div>
                 <div class="p-3.5 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
                     <i class="fa-solid fa-arrow-up-right text-xl"></i>
@@ -90,7 +111,7 @@
                 <div>
                     <p class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Total Saldo Bersih</p>
                     <h2 id="total-saldo" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Rp 0</h2>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Sisa uang (Penghasilan - Pengeluaran)</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">*Sisa uang periode ini</p>
                 </div>
                 <div class="p-3.5 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
                     <i class="fa-solid fa-scale-balanced text-xl"></i>
@@ -165,7 +186,7 @@
             </div>
         </section>
 
-        <!-- SECTION: PINJAMAN & UTANG -->
+        <!-- SECTION: PINJAMAN & UTANG (DENGAN TOMBOL HAPUS DATA) -->
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 p-6">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
                 <div>
@@ -346,7 +367,7 @@
         </div>
     </div>
 
-    <!-- MODAL INPUT NOMINAL TABUNGAN KE TARGET -->
+    <!-- MODAL INPUT TABUNGAN TARGET -->
     <div id="add-target-savings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -369,7 +390,7 @@
         </div>
     </div>
 
-    <!-- MODAL PEMBAYARAN CICILAN UTANG -->
+    <!-- MODAL PEMBAYARAN CICILAN UTANG (DENGAN PILIHAN METODE PEMBAYARAN) -->
     <div id="pay-installment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -382,6 +403,20 @@
                 <div>
                     <label class="block mb-1 text-slate-500">Nominal Pembayaran (Rp)</label>
                     <input type="text" id="pay-amount" oninput="formatRupiahInput(this)" placeholder="Rp 100.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold text-slate-800 dark:text-white">
+                </div>
+                <div>
+                    <label class="block mb-1 text-slate-500">Metode Pembayaran / Rekening</label>
+                    <select id="pay-bank" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none font-medium">
+                        <option value="BCA">Bank BCA</option>
+                        <option value="Mandiri">Bank Mandiri</option>
+                        <option value="BRI">Bank BRI</option>
+                        <option value="BNI">Bank BNI</option>
+                        <option value="Seabank">Seabank</option>
+                        <option value="GoPay">GoPay</option>
+                        <option value="OVO">OVO / Dana</option>
+                        <option value="ShopeePay">ShopeePay</option>
+                        <option value="Cash">Uang Tunai (Cash)</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block mb-1 text-slate-500">Catatan/Keterangan (Opsional)</label>
@@ -415,7 +450,28 @@
         </div>
     </div>
 
-    <!-- MODAL KONFIRMASI HAPUS TRANSAKSI -->
+    <!-- MODAL KONFIRMASI HAPUS TRANSAKSI UTANG/PIUTANG (BARU) -->
+    <div id="delete-debt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 text-center modal-animate">
+            <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Hapus Catatan Utang?</h3>
+            <p id="debt-delete-desc" class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menghapus data ini?
+            </p>
+            <div class="flex items-center gap-3">
+                <button onclick="closeDeleteDebtModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
+                    Batal
+                </button>
+                <button onclick="confirmDeleteDebt()" class="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition">
+                    Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS TRANSAKSI UTAMA -->
     <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 text-center modal-animate">
             <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -471,6 +527,7 @@
         let pendingDeleteId = null;
         let activePayDebtId = null;
         let activeTargetDepositId = null;
+        let pendingDeleteDebtId = null;
         
         let targetBudgets = JSON.parse(localStorage.getItem('target_budgets_data') || '[]');
         let debts = JSON.parse(localStorage.getItem('debts_data') || '[]');
@@ -492,7 +549,6 @@
             return Number(str.replace(/\D/g, '')) || 0;
         }
 
-        // FUNGSI UTAMA Kirim Transaksi Otomatis Ke Neon DB & Riwayat
         async function sendTransactionToDB(title, amount, type, category) {
             try {
                 let textFormat = `${title} ${amount}`;
@@ -513,7 +569,6 @@
                     })
                 });
 
-                // Refresh data setelah transaksi tersimpan
                 loadTransactions();
             } catch (error) {
                 console.error("Gagal menyimpan transaksi otomatis:", error);
@@ -554,10 +609,38 @@
                 if (!response.ok) throw new Error('Network error');
                 const data = await response.json();
                 globalTransactions = data;
-                renderDashboard(data);
+                applyGlobalDateFilter();
             } catch (error) {
                 console.error('Error loading data:', error);
             }
+        }
+
+        // FITUR FILTER TANGGAL LENGKAP
+        function applyGlobalDateFilter() {
+            const startDateVal = document.getElementById('filter-start-date').value;
+            const endDateVal = document.getElementById('filter-end-date').value;
+
+            let filtered = globalTransactions;
+
+            if (startDateVal) {
+                const start = new Date(startDateVal);
+                start.setHours(0, 0, 0, 0);
+                filtered = filtered.filter(item => new Date(item.created_at) >= start);
+            }
+
+            if (endDateVal) {
+                const end = new Date(endDateVal);
+                end.setHours(23, 59, 59, 999);
+                filtered = filtered.filter(item => new Date(item.created_at) <= end);
+            }
+
+            renderDashboard(filtered);
+        }
+
+        function resetGlobalDateFilter() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            renderDashboard(globalTransactions);
         }
 
         // Modals Handler
@@ -602,7 +685,6 @@
             document.getElementById('add-target-savings-modal').classList.add('hidden');
         }
 
-        // EKSEKUSI SETOR TABUNGAN & TERKIRIM OTOMATIS KE RIWAYAT/DB
         async function submitTargetDeposit() {
             if (!activeTargetDepositId) return;
 
@@ -624,9 +706,8 @@
             closeTargetDepositModal();
             renderTargets();
 
-            // Otomatis kirim transaksi PENGELUARAN (Tabungan) ke DB & Riwayat
             if (targetObj) {
-                await sendTransactionToDB(`Tabungan ${targetObj.name}`, depositVal, 'expense', 'Tabungan');
+                await sendTransactionToDB(`Tabungan ${targetObj.name} (${targetObj.bank})`, depositVal, 'expense', 'Tabungan');
             }
         }
 
@@ -697,6 +778,26 @@
             }
         }
 
+        // HAPUS DATA UTANG/PIUTANG
+        function openDeleteDebtModal(id, name) {
+            pendingDeleteDebtId = id;
+            document.getElementById('debt-delete-desc').innerText = `Apakah Anda yakin ingin menghapus catatan utang/piutang "${name}"?`;
+            document.getElementById('delete-debt-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteDebtModal() {
+            pendingDeleteDebtId = null;
+            document.getElementById('delete-debt-modal').classList.add('hidden');
+        }
+
+        function confirmDeleteDebt() {
+            if (!pendingDeleteDebtId) return;
+            debts = debts.filter(d => d.id !== pendingDeleteDebtId);
+            localStorage.setItem('debts_data', JSON.stringify(debts));
+            closeDeleteDebtModal();
+            renderDebts();
+        }
+
         function openPayInstallmentModal(id, name) {
             activePayDebtId = id;
             document.getElementById('pay-target-name').innerText = `Pembayaran cicilan untuk: ${name}`;
@@ -710,11 +811,12 @@
             document.getElementById('pay-installment-modal').classList.add('hidden');
         }
 
-        // EKSEKUSI PEMBAYARAN CICILAN & TERKIRIM OTOMATIS KE RIWAYAT/DB
+        // SUBMIT CICILAN DENGAN METODE PEMBAYARAN BANK
         async function submitInstallmentPayment() {
             if (!activePayDebtId) return;
 
             const payAmount = parseRupiahNumber(document.getElementById('pay-amount').value);
+            const bankMethod = document.getElementById('pay-bank').value || 'Cash';
             const note = document.getElementById('pay-note').value || 'Cicilan / Angsuran';
 
             if (payAmount <= 0) return;
@@ -730,6 +832,7 @@
                         id: Date.now(),
                         date: new Date().toISOString(),
                         amount: payAmount,
+                        bank: bankMethod,
                         note: note,
                         remaining: newAmount
                     });
@@ -742,14 +845,11 @@
             closePayInstallmentModal();
             renderDebts();
 
-            // Otomatis kirim transaksi ke DB & Riwayat
             if (debtObj) {
                 if (debtObj.type === 'utang') {
-                    // Bayar utang saya = Pengeluaran
-                    await sendTransactionToDB(`Bayar Utang: ${debtObj.name}`, payAmount, 'expense', 'Utang');
+                    await sendTransactionToDB(`Bayar Utang ${debtObj.name} via ${bankMethod}`, payAmount, 'expense', 'Utang');
                 } else {
-                    // Terima cicilan piutang orang lain = Pemasukan
-                    await sendTransactionToDB(`Pelunasan Piutang: ${debtObj.name}`, payAmount, 'income', 'Piutang');
+                    await sendTransactionToDB(`Pelunasan Piutang ${debtObj.name} via ${bankMethod}`, payAmount, 'income', 'Piutang');
                 }
             }
         }
@@ -769,7 +869,10 @@
                     html += `
                         <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs">
                             <div>
-                                <span class="font-bold text-slate-800 dark:text-slate-200 block">${h.note}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 block">${h.note}</span>
+                                    <span class="text-[9px] bg-indigo-100 text-indigo-700 font-bold px-1 rounded">${h.bank || 'Cash'}</span>
+                                </div>
                                 <span class="text-[10px] text-slate-400">${formatDate(h.date)}</span>
                             </div>
                             <div class="text-right">
@@ -816,9 +919,12 @@
                                 <i class="fa-solid fa-clock-rotate-left"></i> ${historyCount} Pembayaran
                             </button>
                         </td>
-                        <td class="p-3 text-center">
-                            <button onclick="openPayInstallmentModal(${item.id}, '${safeName}')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+                        <td class="p-3 text-center flex items-center justify-center gap-1.5">
+                            <button onclick="openPayInstallmentModal(${item.id}, '${safeName}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
                                 Bayar Cicilan
+                            </button>
+                            <button onclick="openDeleteDebtModal(${item.id}, '${safeName}')" class="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition" title="Hapus Utang">
+                                <i class="fa-regular fa-trash-can text-sm"></i>
                             </button>
                         </td>
                     </tr>
@@ -827,7 +933,7 @@
             container.innerHTML = html;
         }
 
-        // Hapus Modal Handlers
+        // Hapus Modal Handlers Utama
         function openDeleteModal(id, title) {
             pendingDeleteId = id;
             document.getElementById('modal-desc').innerText = `Apakah Anda yakin ingin menghapus transaksi "${title}" (ID #${id})?`;
@@ -859,7 +965,7 @@
             const categoryTotals = {};
 
             if (!transactions || transactions.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada transaksi.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada transaksi pada rentang tanggal ini.</td></tr>`;
                 document.getElementById('total-saldo').innerText = 'Rp 0';
                 document.getElementById('total-pemasukan').innerText = 'Rp 0';
                 document.getElementById('total-pengeluaran').innerText = 'Rp 0';
