@@ -41,7 +41,6 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <!-- Toggle Dark Mode -->
                 <button onclick="toggleDarkMode()" class="p-2 bg-indigo-700/50 hover:bg-indigo-500/50 rounded-xl transition text-indigo-100" title="Ubah Mode Tampilan">
                     <i id="theme-icon" class="fa-solid fa-moon"></i>
                 </button>
@@ -110,7 +109,7 @@
                             <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
                                 <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Target Budget Bulanan
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Kelola target anggaran per bank/rekening</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Pantau capaian target / pembatasan anggaran</p>
                         </div>
                         <button onclick="openTargetModal()" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
                             <i class="fa-solid fa-plus mr-1"></i> Target Baru
@@ -134,7 +133,6 @@
                             <p class="text-xs text-slate-400">Laporan Grafik Nominal Rupiah</p>
                         </div>
                         
-                        <!-- Filter Bulan & Tahun -->
                         <div class="flex items-center gap-2">
                             <select id="filter-month" onchange="updateFlowBarChart()" class="p-1.5 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none">
                                 <option value="all">Semua Bulan</option>
@@ -290,18 +288,26 @@
         </div>
     </div>
 
-    <!-- MODAL SET TARGET BUDGET (NAMA TARGET, BANK, BULAN, TAHUN, NOMINAL) -->
+    <!-- MODAL SET TARGET BUDGET (SISTEM AKURAT REVISI) -->
     <div id="target-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Set Target Budget Baru</h3>
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block mb-1 text-slate-500">Nama Target / Goal</label>
-                    <input type="text" id="target-name" placeholder="Contoh: Beli Motor / Tabungan Umroh" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                    <input type="text" id="target-name" placeholder="Contoh: Tabungan Motor / Batas Makan" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block mb-1 text-slate-500">Disimpan di Bank / E-Wallet</label>
+                    <label class="block mb-1 text-slate-500">Jenis Target</label>
+                    <select id="target-mode" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
+                        <option value="income">Target Total Pemasukan</option>
+                        <option value="expense">Batas Maksimal Pengeluaran</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block mb-1 text-slate-500">Bank / Tempat Simpan (Opsional)</label>
                     <select id="target-bank" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
+                        <option value="Umum">Semua Rekening (Umum)</option>
                         <option value="BCA">Bank BCA</option>
                         <option value="Mandiri">Bank Mandiri</option>
                         <option value="BRI">Bank BRI</option>
@@ -348,7 +354,7 @@
         </div>
     </div>
 
-    <!-- MODAL PEMBAYARAN CICILAN UTANG (CENTERED & PROFESSIONAL) -->
+    <!-- MODAL PEMBAYARAN CICILAN UTANG -->
     <div id="pay-installment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -519,13 +525,14 @@
 
         function saveTargetBudget() {
             const name = document.getElementById('target-name').value || 'Target Utama';
-            const bank = document.getElementById('target-bank').value || 'BCA';
+            const mode = document.getElementById('target-mode').value || 'income';
+            const bank = document.getElementById('target-bank').value || 'Umum';
             const month = Number(document.getElementById('target-month').value);
             const year = Number(document.getElementById('target-year').value);
             const amount = parseRupiahNumber(document.getElementById('target-amount').value);
 
             if (amount > 0) {
-                targetBudgets.push({ id: Date.now(), name, bank, month, year, amount });
+                targetBudgets.push({ id: Date.now(), name, mode, bank, month, year, amount });
                 localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
                 closeTargetModal();
                 document.getElementById('target-name').value = '';
@@ -549,13 +556,15 @@
 
             let html = '';
             targetBudgets.forEach(t => {
-                const currentIncome = globalTransactions.filter(item => {
-                    if (item.type !== 'income' || !item.created_at) return false;
+                // Hitung realisasi transaksi dari Telegram berdasarkan Tipe & Periode
+                const currentRealized = globalTransactions.filter(item => {
+                    if (item.type !== t.mode || !item.created_at) return false;
                     const d = new Date(item.created_at);
                     return d.getMonth() === t.month && d.getFullYear() === t.year;
                 }).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
-                const percent = Math.min(Math.round((currentIncome / t.amount) * 100), 100);
+                const percent = Math.min(Math.round((currentRealized / t.amount) * 100), 100);
+                const isIncome = t.mode === 'income';
 
                 html += `
                     <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700/80 space-y-2">
@@ -563,20 +572,22 @@
                             <div>
                                 <span class="font-bold text-slate-800 dark:text-slate-200 block">${t.name}</span>
                                 <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded">${t.bank}</span>
-                                    <span class="text-[10px] text-slate-400 font-medium">• ${monthNames[t.month]} ${t.year}</span>
+                                    <span class="text-[10px] ${isIncome ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'} font-bold px-1.5 py-0.5 rounded">
+                                        ${isIncome ? 'Target Pemasukan' : 'Batas Pengeluaran'}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 font-medium">• ${t.bank} (${monthNames[t.month]} ${t.year})</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-indigo-600 font-bold">${percent}%</span>
+                                <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${percent}%</span>
                                 <button onclick="removeTarget(${t.id})" class="text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                         <div class="w-full bg-slate-200 dark:bg-slate-600 h-2.5 rounded-full overflow-hidden">
-                            <div class="bg-indigo-600 h-full" style="width: ${percent}%"></div>
+                            <div class="${isIncome ? 'bg-emerald-500' : 'bg-rose-500'} h-full transition-all duration-300" style="width: ${percent}%"></div>
                         </div>
                         <div class="flex justify-between text-[11px] text-slate-400">
-                            <span>Tercapai: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(currentIncome)}</strong></span>
+                            <span>Tercapai: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(currentRealized)}</strong></span>
                             <span>Target: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(t.amount)}</strong></span>
                         </div>
                     </div>
@@ -604,7 +615,6 @@
             }
         }
 
-        // Modal Bayar Cicilan di Tengah
         function openPayInstallmentModal(id, name) {
             activePayDebtId = id;
             document.getElementById('pay-target-name').innerText = `Pembayaran cicilan untuk: ${name}`;
@@ -647,7 +657,6 @@
             renderDebts();
         }
 
-        // Modal Histori Cicilan
         function openHistoryModal(id) {
             const item = debts.find(d => d.id === id);
             if (!item) return;
