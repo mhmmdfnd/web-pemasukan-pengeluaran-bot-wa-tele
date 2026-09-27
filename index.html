@@ -60,7 +60,7 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- Ringkasan Keuangan Cards (3 Kolom Grid) -->
+        <!-- Ringkasan Keuangan Cards -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <!-- Card 1: Total Penghasilan -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex items-center justify-between border-l-4 border-l-emerald-500">
@@ -110,7 +110,7 @@
                             <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
                                 <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Target Budget Bulanan
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Kelola target anggaran per periode</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Kelola target anggaran per bank/rekening</p>
                         </div>
                         <button onclick="openTargetModal()" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
                             <i class="fa-solid fa-plus mr-1"></i> Target Baru
@@ -118,13 +118,12 @@
                     </div>
 
                     <div id="target-list-container" class="space-y-4 max-h-64 overflow-y-auto pr-1">
-                        <!-- Target items akan dirender otomatis -->
                         <p class="text-xs text-slate-400 text-center py-4">Belum ada target bulanan yang diset.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Cash Flow Statement + Bar Chart dengan Filter Bulan/Tahun -->
+            <!-- Cash Flow Statement + Bar Chart -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between">
                 <div>
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
@@ -175,7 +174,7 @@
                     <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
                         <i class="fa-solid fa-hand-holding-dollar text-indigo-600 dark:text-indigo-400"></i> Catatan Utang & Piutang
                     </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Kelola pinjaman dan pembayaran cicilan</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Kelola pinjaman dan riwayat pembayaran cicilan</p>
                 </div>
                 <button onclick="openDebtModal()" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md transition flex items-center gap-1.5 self-start sm:self-auto">
                     <i class="fa-solid fa-plus"></i> Tambah Utang/Piutang
@@ -189,12 +188,13 @@
                             <th class="p-3">Nama</th>
                             <th class="p-3">Tipe</th>
                             <th class="p-3">Sisa Utang</th>
+                            <th class="p-3">Riwayat Pembayaran</th>
                             <th class="p-3 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="debt-rows" class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
                         <tr>
-                            <td colspan="4" class="p-6 text-center text-slate-400">
+                            <td colspan="5" class="p-6 text-center text-slate-400">
                                 Belum ada catatan utang/piutang.
                             </td>
                         </tr>
@@ -254,7 +254,7 @@
 
     </main>
 
-    <!-- FLOATING ACTION BUTTON (MENU TEPAT DI TENGAH BAWAH) -->
+    <!-- FLOATING ACTION BUTTON -->
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
         <button onclick="openInputMenuModal()" class="flex items-center gap-2 py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-full shadow-2xl shadow-indigo-600/50 border border-indigo-400/30 transition transform hover:scale-105 active:scale-95">
             <i class="fa-solid fa-sliders text-sm"></i>
@@ -290,7 +290,7 @@
         </div>
     </div>
 
-    <!-- MODAL SET TARGET BUDGET (NAMA TARGET, BULAN, TAHUN, NOMINAL RUPIAH) -->
+    <!-- MODAL SET TARGET BUDGET (NAMA TARGET, BANK, BULAN, TAHUN, NOMINAL) -->
     <div id="target-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Set Target Budget Baru</h3>
@@ -298,6 +298,20 @@
                 <div>
                     <label class="block mb-1 text-slate-500">Nama Target / Goal</label>
                     <input type="text" id="target-name" placeholder="Contoh: Beli Motor / Tabungan Umroh" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block mb-1 text-slate-500">Disimpan di Bank / E-Wallet</label>
+                    <select id="target-bank" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
+                        <option value="BCA">Bank BCA</option>
+                        <option value="Mandiri">Bank Mandiri</option>
+                        <option value="BRI">Bank BRI</option>
+                        <option value="BNI">Bank BNI</option>
+                        <option value="Seabank">Seabank</option>
+                        <option value="GoPay">GoPay</option>
+                        <option value="OVO">OVO / Dana</option>
+                        <option value="ShopeePay">ShopeePay</option>
+                        <option value="Cash">Uang Tunai (Cash)</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -330,6 +344,52 @@
             <div class="flex items-center gap-3 mt-6">
                 <button onclick="closeTargetModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
                 <button onclick="saveTargetBudget()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl">Simpan Target</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PEMBAYARAN CICILAN UTANG (CENTERED & PROFESSIONAL) -->
+    <div id="pay-installment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
+            <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <h3 class="text-base font-bold text-center text-slate-900 dark:text-white mb-1">Bayar Cicilan / Angsuran</h3>
+            <p id="pay-target-name" class="text-xs text-center text-slate-500 mb-4">Mencatat pembayaran cicilan</p>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block mb-1 text-slate-500">Nominal Pembayaran (Rp)</label>
+                    <input type="text" id="pay-amount" oninput="formatRupiahInput(this)" placeholder="Rp 100.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold text-slate-800 dark:text-white">
+                </div>
+                <div>
+                    <label class="block mb-1 text-slate-500">Catatan/Keterangan (Opsional)</label>
+                    <input type="text" id="pay-note" placeholder="Contoh: Cicilan ke-2" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none text-slate-800 dark:text-white">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-6">
+                <button onclick="closePayInstallmentModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
+                <button onclick="submitInstallmentPayment()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-md">Proses Bayar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HISTORI CICILAN UTANG -->
+    <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 modal-animate">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Histori Pembayaran Cicilan</h3>
+                    <p id="history-debt-name" class="text-xs text-indigo-500 font-semibold mt-0.5">-</p>
+                </div>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="max-h-60 overflow-y-auto space-y-2 pr-1" id="history-list-container">
+                <p class="text-xs text-slate-400 text-center py-4">Belum ada riwayat pembayaran.</p>
             </div>
         </div>
     </div>
@@ -388,6 +448,7 @@
         let categoryChartInstance = null;
         let flowBarChartInstance = null;
         let pendingDeleteId = null;
+        let activePayDebtId = null;
         
         let targetBudgets = JSON.parse(localStorage.getItem('target_budgets_data') || '[]');
         let debts = JSON.parse(localStorage.getItem('debts_data') || '[]');
@@ -395,7 +456,6 @@
 
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
-        // Format Input Menggunakan Masking Rupiah Otomatis
         function formatRupiahInput(input) {
             let value = input.value.replace(/\D/g, '');
             if (value === '') {
@@ -410,7 +470,6 @@
             return Number(str.replace(/\D/g, '')) || 0;
         }
 
-        // Mode Gelap / Terang
         function toggleDarkMode() {
             const html = document.documentElement;
             const icon = document.getElementById('theme-icon');
@@ -459,13 +518,14 @@
         function closeTargetModal() { document.getElementById('target-modal').classList.add('hidden'); }
 
         function saveTargetBudget() {
-            const name = document.getElementById('target-name').value || 'Target Unggulan';
+            const name = document.getElementById('target-name').value || 'Target Utama';
+            const bank = document.getElementById('target-bank').value || 'BCA';
             const month = Number(document.getElementById('target-month').value);
             const year = Number(document.getElementById('target-year').value);
             const amount = parseRupiahNumber(document.getElementById('target-amount').value);
 
             if (amount > 0) {
-                targetBudgets.push({ id: Date.now(), name, month, year, amount });
+                targetBudgets.push({ id: Date.now(), name, bank, month, year, amount });
                 localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
                 closeTargetModal();
                 document.getElementById('target-name').value = '';
@@ -502,7 +562,10 @@
                         <div class="flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-bold text-slate-800 dark:text-slate-200 block">${t.name}</span>
-                                <span class="text-[10px] text-indigo-500 font-semibold">${monthNames[t.month]} ${t.year}</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded">${t.bank}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium">• ${monthNames[t.month]} ${t.year}</span>
+                                </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-indigo-600 font-bold">${percent}%</span>
@@ -532,7 +595,7 @@
             const amount = parseRupiahNumber(document.getElementById('debt-amount').value);
 
             if (name && amount > 0) {
-                debts.push({ id: Date.now(), name, type, amount });
+                debts.push({ id: Date.now(), name, type, amount, history: [] });
                 localStorage.setItem('debts_data', JSON.stringify(debts));
                 closeDebtModal();
                 document.getElementById('debt-name').value = '';
@@ -541,33 +604,98 @@
             }
         }
 
-        function payInstallment(id) {
-            const payVal = prompt('Masukkan jumlah cicilan/pembayaran (Rp):');
-            if (payVal) {
-                const amount = parseRupiahNumber(payVal);
-                debts = debts.map(item => {
-                    if (item.id === id) {
-                        const newAmount = item.amount - amount;
-                        return { ...item, amount: newAmount > 0 ? newAmount : 0 };
-                    }
-                    return item;
-                }).filter(item => item.amount > 0);
+        // Modal Bayar Cicilan di Tengah
+        function openPayInstallmentModal(id, name) {
+            activePayDebtId = id;
+            document.getElementById('pay-target-name').innerText = `Pembayaran cicilan untuk: ${name}`;
+            document.getElementById('pay-amount').value = '';
+            document.getElementById('pay-note').value = '';
+            document.getElementById('pay-installment-modal').classList.remove('hidden');
+        }
 
-                localStorage.setItem('debts_data', JSON.stringify(debts));
-                renderDebts();
+        function closePayInstallmentModal() {
+            activePayDebtId = null;
+            document.getElementById('pay-installment-modal').classList.add('hidden');
+        }
+
+        function submitInstallmentPayment() {
+            if (!activePayDebtId) return;
+
+            const payAmount = parseRupiahNumber(document.getElementById('pay-amount').value);
+            const note = document.getElementById('pay-note').value || 'Cicilan / Angsuran';
+
+            if (payAmount <= 0) return;
+
+            debts = debts.map(item => {
+                if (item.id === activePayDebtId) {
+                    const newAmount = Math.max(0, item.amount - payAmount);
+                    const newHistory = item.history || [];
+                    newHistory.unshift({
+                        id: Date.now(),
+                        date: new Date().toISOString(),
+                        amount: payAmount,
+                        note: note,
+                        remaining: newAmount
+                    });
+                    return { ...item, amount: newAmount, history: newHistory };
+                }
+                return item;
+            }).filter(item => item.amount > 0 || (item.history && item.history.length > 0));
+
+            localStorage.setItem('debts_data', JSON.stringify(debts));
+            closePayInstallmentModal();
+            renderDebts();
+        }
+
+        // Modal Histori Cicilan
+        function openHistoryModal(id) {
+            const item = debts.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('history-debt-name').innerText = `${item.name} (${item.type === 'utang' ? 'Utang Saya' : 'Piutang'})`;
+            const container = document.getElementById('history-list-container');
+
+            if (!item.history || item.history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada riwayat pembayaran.</p>`;
+            } else {
+                let html = '';
+                item.history.forEach(h => {
+                    html += `
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block">${h.note}</span>
+                                <span class="text-[10px] text-slate-400">${formatDate(h.date)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400 block">- ${formatRupiah(h.amount)}</span>
+                                <span class="text-[10px] text-slate-400">Sisa: ${formatRupiah(h.remaining)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
             }
+
+            document.getElementById('history-modal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.add('hidden');
         }
 
         function renderDebts() {
             const container = document.getElementById('debt-rows');
             if (debts.length === 0) {
-                container.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">Belum ada catatan utang/piutang.</td></tr>`;
+                container.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Belum ada catatan utang/piutang.</td></tr>`;
                 return;
             }
 
             let html = '';
             debts.forEach(item => {
                 const isUtang = item.type === 'utang';
+                const safeName = item.name.replace(/'/g, "\\'");
+                const historyCount = item.history ? item.history.length : 0;
+
                 html += `
                     <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
                         <td class="p-3 font-semibold">${item.name}</td>
@@ -577,8 +705,13 @@
                             </span>
                         </td>
                         <td class="p-3 font-bold">${formatRupiah(item.amount)}</td>
+                        <td class="p-3">
+                            <button onclick="openHistoryModal(${item.id})" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-clock-rotate-left"></i> ${historyCount} Pembayaran
+                            </button>
+                        </td>
                         <td class="p-3 text-center">
-                            <button onclick="payInstallment(${item.id})" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
+                            <button onclick="openPayInstallmentModal(${item.id}, '${safeName}')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">
                                 Bayar Cicilan
                             </button>
                         </td>
@@ -669,7 +802,6 @@
                 `;
             });
 
-            // Update Total Ringkasan
             const netBalance = totalIncome - totalExpense;
             document.getElementById('total-saldo').innerText = formatRupiah(netBalance);
             document.getElementById('total-pemasukan').innerText = formatRupiah(totalIncome);
@@ -681,7 +813,6 @@
             renderTargets();
         }
 
-        // Update Flow Bar Chart Berdasarkan Filter Bulan & Tahun
         function updateFlowBarChart() {
             const selectedMonth = document.getElementById('filter-month').value;
             const selectedYear = Number(document.getElementById('filter-year').value);
@@ -710,7 +841,6 @@
             renderFlowBarChart(filteredInc, filteredExp, filteredNet);
         }
 
-        // Render Grafik Bar Flow Statement dengan Label Nominal Rupiah
         function renderFlowBarChart(income, expense, net) {
             const ctx = document.getElementById('flowBarChart').getContext('2d');
             if (flowBarChartInstance) flowBarChartInstance.destroy();
