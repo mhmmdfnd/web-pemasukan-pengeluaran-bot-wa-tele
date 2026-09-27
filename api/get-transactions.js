@@ -15,15 +15,27 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'DATABASE_URL belum dikonfigurasi' });
   }
 
+  const { username } = req.query;
+
   try {
     const sql = neon(databaseUrl);
     
-    // Mengambil transaksi dari tabel (urutkan dari yang terbaru)
-    const transactions = await sql`
-      SELECT id, title, amount, type, category, created_at 
-      FROM transactions 
-      ORDER BY id DESC
-    `;
+    let transactions = [];
+    if (username) {
+      // Hanya ambil transaksi milik user yang sedang login
+      transactions = await sql`
+        SELECT id, title, amount, type, category, created_at, username 
+        FROM transactions 
+        WHERE username = ${username}
+        ORDER BY id DESC
+      `;
+    } else {
+      transactions = await sql`
+        SELECT id, title, amount, type, category, created_at, username 
+        FROM transactions 
+        ORDER BY id DESC
+      `;
+    }
 
     return res.status(200).json(transactions);
   } catch (error) {
