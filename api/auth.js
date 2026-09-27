@@ -2,7 +2,6 @@
 import { neon } from '@neondatabase/serverless';
 
 export default async function handler(req, res) {
-  // Set CORS Header
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -13,13 +12,13 @@ export default async function handler(req, res) {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    return res.status(500).json({ success: false, message: 'DATABASE_URL belum dikonfigurasi di Vercel' });
+    return res.status(500).json({ success: false, message: 'DATABASE_URL belum dipasang di Vercel' });
   }
 
-  const sql = neon(databaseUrl);
-
   try {
-    // 1. LOGIN USER
+    const sql = neon(databaseUrl);
+
+    // 1. HANDLER LOGIN
     if (req.method === 'POST' && req.body.action === 'login') {
       const { username, password } = req.body;
       const rows = await sql`SELECT id, username, password, bot_token, chat_id, role FROM users WHERE username = ${username}`;
@@ -41,13 +40,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. GET DAFTAR USERS (ADMIN)
+    // 2. HANDLER LIST USER (ADMIN)
     if (req.method === 'GET') {
       const allUsers = await sql`SELECT id, username, bot_token AS "botToken", chat_id AS "chatId", role FROM users ORDER BY id ASC`;
       return res.status(200).json({ success: true, users: allUsers });
     }
 
-    // 3. REGISTER USER BARU (ADMIN)
+    // 3. HANDLER REGISTER USER (ADMIN)
     if (req.method === 'POST' && req.body.action === 'register') {
       const { username, password, botToken, chatId, role } = req.body;
 
@@ -64,7 +63,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, user: inserted[0] });
     }
 
-    // 4. HAPUS USER
+    // 4. HANDLER HAPUS USER
     if (req.method === 'DELETE') {
       const { id } = req.body;
       await sql`DELETE FROM users WHERE id = ${id}`;
