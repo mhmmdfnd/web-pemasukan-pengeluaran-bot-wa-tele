@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Keuangan Personal - Pro</title>
+    <title>Financial Tracker Pro - Advanced</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,7 +25,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans pb-24 transition-colors duration-200">
 
     <!-- Header / Navbar -->
     <header class="bg-indigo-600 dark:bg-indigo-950 text-white shadow-md sticky top-0 z-40">
@@ -98,50 +98,39 @@
             </div>
         </section>
 
-        <!-- SECTION: TARGET BUDGET & CASHFLOW STATEMENT -->
+        <!-- SECTION: TARGET BUDGET & GRAFIK FLOW STATEMENT -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Target Budget Bulanan -->
+            
+            <!-- Daftar Target Budget Bulanan -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                            <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Target Penghasilan Bulanan
-                        </h3>
-                        <button onclick="setMonthlyTarget()" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
-                            Set Target
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Target Budget Bulanan
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Kelola target anggaran per periode</p>
+                        </div>
+                        <button onclick="openTargetModal()" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Target Baru
                         </button>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-semibold">
-                            <span class="text-slate-500 dark:text-slate-400">Progres Bulan Ini</span>
-                            <span id="target-percent-label" class="text-indigo-600 dark:text-indigo-400">0%</span>
-                        </div>
-                        <div class="w-full bg-slate-100 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
-                            <div id="target-progress-bar" class="bg-indigo-600 h-full w-0 transition-all duration-500"></div>
-                        </div>
-                        <div class="flex justify-between text-xs text-slate-400 dark:text-slate-500">
-                            <span>Tercapai: <strong id="target-current" class="text-slate-700 dark:text-slate-300">Rp 0</strong></span>
-                            <span>Target: <strong id="target-goal" class="text-slate-700 dark:text-slate-300">Rp 10.000.000</strong></span>
-                        </div>
+
+                    <div id="target-list-container" class="space-y-4 max-h-64 overflow-y-auto pr-1">
+                        <!-- Target items akan dirender otomatis -->
+                        <p class="text-xs text-slate-400 text-center py-4">Belum ada target bulanan yang diset.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Cash Flow Statement Summary -->
+            <!-- Cash Flow Statement + Bar Chart -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700">
-                <h3 class="font-bold text-slate-800 dark:text-white text-base mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-indigo-600 dark:text-indigo-400"></i> Ringkasan Flow & Statement
+                <h3 class="font-bold text-slate-800 dark:text-white text-base mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-indigo-600 dark:text-indigo-400"></i> Flow & Statement Graphic
                 </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <p class="text-[11px] text-slate-400 dark:text-slate-400 font-medium">Rasio Hemat</p>
-                        <h4 id="stat-savings-ratio" class="text-lg font-bold text-slate-800 dark:text-white mt-0.5">0%</h4>
-                    </div>
-                    <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <p class="text-[11px] text-slate-400 dark:text-slate-400 font-medium">Rata-Rata Pengeluaran</p>
-                        <h4 id="stat-avg-expense" class="text-lg font-bold text-slate-800 dark:text-white mt-0.5">Rp 0</h4>
-                    </div>
+                <p class="text-xs text-slate-400 mb-4">Perbandingan Visual Cashflow</p>
+                <div class="relative w-full h-52">
+                    <canvas id="flowBarChart"></canvas>
                 </div>
             </div>
         </section>
@@ -181,7 +170,7 @@
             </div>
         </section>
 
-        <!-- Section Grafik & Breakdown -->
+        <!-- Section Grafik Donut & Breakdown Tabel Transaksi -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Chart Pengeluaran per Kategori -->
             <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 lg:col-span-1 flex flex-col justify-between">
@@ -231,6 +220,82 @@
         </section>
 
     </main>
+
+    <!-- FLOATING ACTION BUTTON (MENU TEPAT DI TENGAH BAWAH) -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+        <button onclick="openInputMenuModal()" class="flex items-center gap-2 py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-full shadow-2xl shadow-indigo-600/50 border border-indigo-400/30 transition transform hover:scale-105 active:scale-95">
+            <i class="fa-solid fa-sliders text-sm"></i>
+            <span>Kelola & Input Data</span>
+        </button>
+    </div>
+
+    <!-- MODAL MENU INPUT UTAMA (CENTERED & PROFESSIONAL) -->
+    <div id="input-menu-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 modal-animate">
+            <div class="flex justify-between items-center mb-5 border-b border-slate-100 dark:border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-indigo-600"></i> Menu Pengaturan & Input
+                </h3>
+                <button onclick="closeInputMenuModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-left">
+                <button onclick="closeInputMenuModal(); openTargetModal();" class="p-4 bg-slate-50 dark:bg-slate-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-600 rounded-xl transition flex flex-col items-center text-center">
+                    <i class="fa-solid fa-bullseye text-2xl text-indigo-600 mb-2"></i>
+                    <span class="font-semibold text-xs text-slate-800 dark:text-slate-200">Set Target Budget</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">Tambah periode target</span>
+                </button>
+
+                <button onclick="closeInputMenuModal(); openDebtModal();" class="p-4 bg-slate-50 dark:bg-slate-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-600 rounded-xl transition flex flex-col items-center text-center">
+                    <i class="fa-solid fa-hand-holding-dollar text-2xl text-emerald-600 mb-2"></i>
+                    <span class="font-semibold text-xs text-slate-800 dark:text-slate-200">Utang / Piutang</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">Catat pinjaman baru</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SET TARGET BUDGET (MENGATUR BULAN & TAHUN) -->
+    <div id="target-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Set Target Budget Baru</h3>
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block mb-1 text-slate-500">Bulan</label>
+                        <select id="target-month" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
+                            <option value="0">Januari</option>
+                            <option value="1">Februari</option>
+                            <option value="2">Maret</option>
+                            <option value="3">April</option>
+                            <option value="4">Mei</option>
+                            <option value="5">Juni</option>
+                            <option value="6">Juli</option>
+                            <option value="7">Agustus</option>
+                            <option value="8">September</option>
+                            <option value="9">Oktober</option>
+                            <option value="10">November</option>
+                            <option value="11">Desember</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-slate-500">Tahun</label>
+                        <input type="number" id="target-year" value="2026" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-1 text-slate-500">Target Uang (Rp)</label>
+                    <input type="number" id="target-amount" placeholder="10000000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                </div>
+            </div>
+            <div class="flex items-center gap-3 mt-6">
+                <button onclick="closeTargetModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
+                <button onclick="saveTargetBudget()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl">Simpan Target</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL KONFIRMASI HAPUS TRANSAKSI -->
     <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
@@ -284,9 +349,14 @@
     <!-- JavaScript Handler -->
     <script>
         let categoryChartInstance = null;
+        let flowBarChartInstance = null;
         let pendingDeleteId = null;
-        let monthlyTarget = localStorage.getItem('monthly_target') || 10000000;
+        
+        let targetBudgets = JSON.parse(localStorage.getItem('target_budgets_data') || '[]');
         let debts = JSON.parse(localStorage.getItem('debts_data') || '[]');
+        let globalTransactions = [];
+
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
         // Mode Gelap / Terang
         function toggleDarkMode() {
@@ -303,7 +373,6 @@
             }
         }
 
-        // Load Preferensi Tema
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
             document.getElementById('theme-icon').className = 'fa-solid fa-sun';
@@ -323,20 +392,79 @@
                 const response = await fetch('/api/get-transactions');
                 if (!response.ok) throw new Error('Network error');
                 const data = await response.json();
+                globalTransactions = data;
                 renderDashboard(data);
             } catch (error) {
                 console.error('Error loading data:', error);
             }
         }
 
-        // Pengaturan Target Bulanan
-        function setMonthlyTarget() {
-            const val = prompt('Masukkan target penghasilan bulanan Anda (Rp):', monthlyTarget);
-            if (val && !isNaN(val)) {
-                monthlyTarget = Number(val);
-                localStorage.setItem('monthly_target', monthlyTarget);
-                loadTransactions();
+        // Modals Centered Handler
+        function openInputMenuModal() { document.getElementById('input-menu-modal').classList.remove('hidden'); }
+        function closeInputMenuModal() { document.getElementById('input-menu-modal').classList.add('hidden'); }
+
+        function openTargetModal() { document.getElementById('target-modal').classList.remove('hidden'); }
+        function closeTargetModal() { document.getElementById('target-modal').classList.add('hidden'); }
+
+        function saveTargetBudget() {
+            const month = Number(document.getElementById('target-month').value);
+            const year = Number(document.getElementById('target-year').value);
+            const amount = Number(document.getElementById('target-amount').value);
+
+            if (amount > 0) {
+                // Hapus jika sudah ada periode yang sama
+                targetBudgets = targetBudgets.filter(t => !(t.month === month && t.year === year));
+                targetBudgets.push({ id: Date.now(), month, year, amount });
+                localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
+                closeTargetModal();
+                renderTargets();
             }
+        }
+
+        function removeTarget(id) {
+            targetBudgets = targetBudgets.filter(t => t.id !== id);
+            localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
+            renderTargets();
+        }
+
+        function renderTargets() {
+            const container = document.getElementById('target-list-container');
+            if (targetBudgets.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada target bulanan yang diset.</p>`;
+                return;
+            }
+
+            let html = '';
+            targetBudgets.forEach(t => {
+                // Hitung pencapaian pemasukan di bulan & tahun ini
+                const currentIncome = globalTransactions.filter(item => {
+                    if (item.type !== 'income' || !item.created_at) return false;
+                    const d = new Date(item.created_at);
+                    return d.getMonth() === t.month && d.getFullYear() === t.year;
+                }).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+                const percent = Math.min(Math.round((currentIncome / t.amount) * 100), 100);
+
+                html += `
+                    <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700/80 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-800 dark:text-slate-200">${monthNames[t.month]} ${t.year}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-indigo-600 font-semibold">${percent}%</span>
+                                <button onclick="removeTarget(${t.id})" class="text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-600 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-indigo-600 h-full" style="width: ${percent}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>Tercapai: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(currentIncome)}</strong></span>
+                            <span>Target: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(t.amount)}</strong></span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
         }
 
         // Modal Utang Handlers
@@ -490,22 +618,34 @@
             document.getElementById('total-pemasukan').innerText = formatRupiah(totalIncome);
             document.getElementById('total-pengeluaran').innerText = formatRupiah(totalExpense);
 
-            // Update Target Bulanan
-            const percent = Math.min(Math.round((totalIncome / monthlyTarget) * 100), 100);
-            document.getElementById('target-percent-label').innerText = `${percent}%`;
-            document.getElementById('target-progress-bar').style.width = `${percent}%`;
-            document.getElementById('target-current').innerText = formatRupiah(totalIncome);
-            document.getElementById('target-goal').innerText = formatRupiah(monthlyTarget);
-
-            // Update Statement / Stats
-            const savingsRatio = totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
-            document.getElementById('stat-savings-ratio').innerText = `${savingsRatio}%`;
-            const expenseCount = transactions.filter(t => t.type === 'expense').length;
-            const avgExpense = expenseCount > 0 ? Math.round(totalExpense / expenseCount) : 0;
-            document.getElementById('stat-avg-expense').innerText = formatRupiah(avgExpense);
-
             tableBody.innerHTML = rowsHtml;
             renderChart(categoryTotals);
+            renderFlowBarChart(totalIncome, totalExpense, netBalance);
+            renderTargets();
+        }
+
+        // Render Grafik Bar Cash Flow Statement
+        function renderFlowBarChart(income, expense, net) {
+            const ctx = document.getElementById('flowBarChart').getContext('2d');
+            if (flowBarChartInstance) flowBarChartInstance.destroy();
+
+            flowBarChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran', 'Saldo Bersih'],
+                    datasets: [{
+                        data: [income, expense, net],
+                        backgroundColor: ['#10b981', '#ef4444', '#6366f1'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
         }
 
         function renderChart(categoryData) {
