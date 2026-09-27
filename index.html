@@ -301,9 +301,9 @@
                         <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">
                             <div>
                                 <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                                    <i class="fa-solid fa-receipt text-indigo-600 dark:text-indigo-400"></i> Riwayat Transaksi
+                                    <i class="fa-solid fa-receipt text-indigo-600 dark:text-indigo-400"></i> Riwayat Transaksi Pribadi
                                 </h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Otomatis tersinkronisasi dari Bot Telegram</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tersinkronisasi khusus akun Anda</p>
                             </div>
                         </div>
 
@@ -324,7 +324,7 @@
                                     <tr>
                                         <td colspan="7" class="p-8 text-center text-slate-400">
                                             <i class="fa-solid fa-circle-notch animate-spin text-indigo-600 text-2xl"></i>
-                                            <p class="mt-2 text-xs font-medium">Memuat data dari Neon DB...</p>
+                                            <p class="mt-2 text-xs font-medium">Memuat data...</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -611,7 +611,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT MASTER UTUH MANDIRI -->
+    <!-- JAVASCRIPT MASTER UTUH MANDIRI (DENGAN FILTER USERNAME) -->
     <script>
         let usersDB = JSON.parse(localStorage.getItem('app_users_db') || JSON.stringify([
             { id: 1, username: 'admin', password: 'admin123', botToken: '', chatId: '', role: 'admin' }
@@ -682,10 +682,9 @@
                     return;
                 }
             } catch (err) {
-                console.warn("Server auth belum siap, mencoba login lokal fallback...", err);
+                console.warn("Server auth belum siap, mencoba login lokal...", err);
             }
 
-            // FALLBACK LOGIN LOKAL / OFFLINE
             const localUser = usersDB.find(x => x.username === u && x.password === p);
             if (localUser) {
                 currentUser = localUser;
@@ -735,9 +734,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'register', username: u, password: p, botToken: botToken || '', chatId: chatId || '', role: r })
                     });
-                } catch (e) {
-                    console.warn("Gagal menyimpan ke server, disimpan ke lokal saja", e);
-                }
+                } catch (e) {}
 
                 closeAddUserModal();
                 renderUsersTable();
@@ -798,6 +795,8 @@
         }
 
         async function sendTransactionToDB(title, amount, type, category) {
+            if (!currentUser) return;
+
             try {
                 let textFormat = `${title} ${amount}`;
                 if (type === 'income') {
@@ -810,8 +809,9 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: { chat: { id: currentUser && currentUser.chatId ? currentUser.chatId : 0 }, text: textFormat },
-                        bot_token: currentUser && currentUser.botToken ? currentUser.botToken : ''
+                        message: { chat: { id: currentUser.chatId ? currentUser.chatId : 0 }, text: textFormat },
+                        bot_token: currentUser.botToken ? currentUser.botToken : '',
+                        username: currentUser.username
                     })
                 });
 
@@ -820,15 +820,23 @@
         }
 
         async function loadTransactions() {
+            if (!currentUser) return;
+
             try {
-                const response = await fetch('/api/get-transactions');
-                if (!response.ok) throw new Error('Network error');
+                // Ambil data transaksi spesifik milik user yang sedang login
+                const response = await fetch(`/api/get-transactions?username=${encodeURIComponent(currentUser.username)}`);
+                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
-                globalTransactions = data;
+                
+                globalTransactions = Array.isArray(data) ? data : [];
                 applyGlobalDateFilter();
                 updateFlowLineChart();
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.warn('Gagal memuat dari server, menggunakan data lokal...', error);
+                const localData = JSON.parse(localStorage.getItem(`transactions_${currentUser.username}`) || '[]');
+                globalTransactions = localData;
+                applyGlobalDateFilter();
+                updateFlowLineChart();
             }
         }
 
@@ -935,7 +943,7 @@
             const categoryTotals = {};
 
             if (!transactions || transactions.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada transaksi.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada transaksi pada akun ini.</td></tr>`;
                 document.getElementById('total-saldo').innerText = 'Rp 0';
                 document.getElementById('total-pemasukan').innerText = 'Rp 0';
                 document.getElementById('total-pengeluaran').innerText = 'Rp 0';
