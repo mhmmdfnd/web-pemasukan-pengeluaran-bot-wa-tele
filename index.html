@@ -103,16 +103,18 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-100/70 text-slate-500 text-xs uppercase tracking-wider font-semibold">
+                                <th class="p-3.5">ID</th>
                                 <th class="p-3.5">Tanggal</th>
                                 <th class="p-3.5">Deskripsi</th>
                                 <th class="p-3.5">Kategori</th>
                                 <th class="p-3.5">Tipe</th>
                                 <th class="p-3.5 text-right">Jumlah</th>
+                                <th class="p-3.5 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="transaction-rows" class="divide-y divide-slate-100 text-sm">
                             <tr>
-                                <td colspan="5" class="p-8 text-center text-slate-400">
+                                <td colspan="7" class="p-8 text-center text-slate-400">
                                     <i class="fa-solid fa-circle-notch animate-spin text-indigo-600 text-2xl"></i>
                                     <p class="mt-2 text-xs font-medium">Memuat data dari Neon DB...</p>
                                 </td>
@@ -160,12 +162,42 @@
                 console.error('Error loading data:', error);
                 document.getElementById('transaction-rows').innerHTML = `
                     <tr>
-                        <td colspan="5" class="p-8 text-center text-rose-500">
+                        <td colspan="7" class="p-8 text-center text-rose-500">
                             <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
                             <p class="font-semibold text-sm">Gagal menghubungkan ke database Neon DB.</p>
                         </td>
                     </tr>
                 `;
+            }
+        }
+
+        // FUNGSI UNTUK MENGHAPUS TRANSAKSI LANGSUNG DARI WEB
+        async function deleteTransaction(id, title) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus transaksi "${title}" (ID #${id})?`)) {
+                return;
+            }
+
+            try {
+                // Mengirimkan request hapus ke API backend
+                const response = await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: {
+                            chat: { id: 0 },
+                            text: `hapus ${id}`
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    loadTransactions(); // Refresh data otomatis setelah hapus
+                } else {
+                    alert('Gagal menghapus transaksi.');
+                }
+            } catch (error) {
+                console.error('Error deleting:', error);
+                alert('Terjadi kesalahan saat menghapus.');
             }
         }
 
@@ -178,7 +210,7 @@
             if (!transactions || transactions.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="p-8 text-center text-slate-400">
+                        <td colspan="7" class="p-8 text-center text-slate-400">
                             Belum ada transaksi. Kirim pesan ke Bot Telegram Anda untuk mencatat.
                         </td>
                     </tr>
@@ -204,8 +236,12 @@
                     categoryTotals[cat] = (categoryTotals[cat] || 0) + amount;
                 }
 
+                // Meloloskan tanda petik agar tidak merusak fungsi JS
+                const safeTitle = item.title.replace(/'/g, "\\'");
+
                 rowsHtml += `
                     <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="p-3.5 font-bold text-indigo-600 text-xs">#${item.id}</td>
                         <td class="p-3.5 text-slate-400 text-xs whitespace-nowrap">${formatDate(item.created_at)}</td>
                         <td class="p-3.5 font-semibold text-slate-800">${item.title}</td>
                         <td class="p-3.5">
@@ -220,6 +256,11 @@
                         </td>
                         <td class="p-3.5 text-right font-bold whitespace-nowrap ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
                             ${isIncome ? '+' : '-'} ${formatRupiah(amount)}
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteTransaction(${item.id}, '${safeTitle}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Transaksi">
+                                <i class="fa-regular fa-trash-can text-sm"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
