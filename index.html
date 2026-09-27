@@ -346,7 +346,7 @@
         </div>
     </div>
 
-    <!-- MODAL INPUT NOMINAL TABUNGAN KE TARGET (BARU) -->
+    <!-- MODAL INPUT NOMINAL TABUNGAN KE TARGET -->
     <div id="add-target-savings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -364,7 +364,7 @@
 
             <div class="flex items-center gap-3 mt-6">
                 <button onclick="closeTargetDepositModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
-                <button onclick="submitTargetDeposit()" class="flex-1 py-2.5 px-4 bg-emerald-600 text-white text-xs font-semibold rounded-xl shadow-md">Tambah Uang</button>
+                <button onclick="submitTargetDeposit()" class="flex-1 py-2.5 px-4 bg-emerald-600 text-white text-xs font-semibold rounded-xl shadow-md">Setor & Catat Riwayat</button>
             </div>
         </div>
     </div>
@@ -391,7 +391,7 @@
 
             <div class="flex items-center gap-3 mt-6">
                 <button onclick="closePayInstallmentModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
-                <button onclick="submitInstallmentPayment()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-md">Proses Bayar</button>
+                <button onclick="submitInstallmentPayment()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-md">Proses & Catat Riwayat</button>
             </div>
         </div>
     </div>
@@ -492,6 +492,34 @@
             return Number(str.replace(/\D/g, '')) || 0;
         }
 
+        // FUNGSI UTAMA Kirim Transaksi Otomatis Ke Neon DB & Riwayat
+        async function sendTransactionToDB(title, amount, type, category) {
+            try {
+                let textFormat = `${title} ${amount}`;
+                if (type === 'income') {
+                    textFormat = `pemasukan ${title} ${amount} : ${category}`;
+                } else {
+                    textFormat = `pengeluaran ${title} ${amount} : ${category}`;
+                }
+
+                await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: {
+                            chat: { id: 0 },
+                            text: textFormat
+                        }
+                    })
+                });
+
+                // Refresh data setelah transaksi tersimpan
+                loadTransactions();
+            } catch (error) {
+                console.error("Gagal menyimpan transaksi otomatis:", error);
+            }
+        }
+
         function toggleDarkMode() {
             const html = document.documentElement;
             const icon = document.getElementById('theme-icon');
@@ -562,7 +590,6 @@
             renderTargets();
         }
 
-        // Buka Modal Deposit Tabungan Ke Target
         function openTargetDepositModal(id, name) {
             activeTargetDepositId = id;
             document.getElementById('target-deposit-name').innerText = `Target: ${name}`;
@@ -575,14 +602,18 @@
             document.getElementById('add-target-savings-modal').classList.add('hidden');
         }
 
-        function submitTargetDeposit() {
+        // EKSEKUSI SETOR TABUNGAN & TERKIRIM OTOMATIS KE RIWAYAT/DB
+        async function submitTargetDeposit() {
             if (!activeTargetDepositId) return;
 
             const depositVal = parseRupiahNumber(document.getElementById('deposit-amount').value);
             if (depositVal <= 0) return;
 
+            let targetObj = null;
+
             targetBudgets = targetBudgets.map(t => {
                 if (t.id === activeTargetDepositId) {
+                    targetObj = t;
                     const updatedSaved = (t.currentSaved || 0) + depositVal;
                     return { ...t, currentSaved: updatedSaved };
                 }
@@ -592,6 +623,11 @@
             localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
             closeTargetDepositModal();
             renderTargets();
+
+            // Otomatis kirim transaksi PENGELUARAN (Tabungan) ke DB & Riwayat
+            if (targetObj) {
+                await sendTransactionToDB(`Tabungan ${targetObj.name}`, depositVal, 'expense', 'Tabungan');
+            }
         }
 
         function renderTargets() {
@@ -633,7 +669,7 @@
                                 <span>Target: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(t.amount)}</strong></span>
                             </div>
                             <button onclick="openTargetDepositModal(${t.id}, '${safeName}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[10px] rounded-lg shadow-sm transition">
-                                + Input Uang
+                                + Setor Tabungan
                             </button>
                         </div>
                     </div>
@@ -674,7 +710,8 @@
             document.getElementById('pay-installment-modal').classList.add('hidden');
         }
 
-        function submitInstallmentPayment() {
+        // EKSEKUSI PEMBAYARAN CICILAN & TERKIRIM OTOMATIS KE RIWAYAT/DB
+        async function submitInstallmentPayment() {
             if (!activePayDebtId) return;
 
             const payAmount = parseRupiahNumber(document.getElementById('pay-amount').value);
@@ -682,8 +719,11 @@
 
             if (payAmount <= 0) return;
 
+            let debtObj = null;
+
             debts = debts.map(item => {
                 if (item.id === activePayDebtId) {
+                    debtObj = item;
                     const newAmount = Math.max(0, item.amount - payAmount);
                     const newHistory = item.history || [];
                     newHistory.unshift({
@@ -701,6 +741,17 @@
             localStorage.setItem('debts_data', JSON.stringify(debts));
             closePayInstallmentModal();
             renderDebts();
+
+            // Otomatis kirim transaksi ke DB & Riwayat
+            if (debtObj) {
+                if (debtObj.type === 'utang') {
+                    // Bayar utang saya = Pengeluaran
+                    await sendTransactionToDB(`Bayar Utang: ${debtObj.name}`, payAmount, 'expense', 'Utang');
+                } else {
+                    // Terima cicilan piutang orang lain = Pemasukan
+                    await sendTransactionToDB(`Pelunasan Piutang: ${debtObj.name}`, payAmount, 'income', 'Piutang');
+                }
+            }
         }
 
         function openHistoryModal(id) {
@@ -779,7 +830,7 @@
         // Hapus Modal Handlers
         function openDeleteModal(id, title) {
             pendingDeleteId = id;
-            document.getElementById('modal-desc').innerText = `Apakah Anda yakin ingin menghapus "${title}" (ID #${id})?`;
+            document.getElementById('modal-desc').innerText = `Apakah Anda yakin ingin menghapus transaksi "${title}" (ID #${id})?`;
             document.getElementById('delete-modal').classList.remove('hidden');
         }
 
