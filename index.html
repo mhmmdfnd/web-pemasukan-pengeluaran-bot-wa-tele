@@ -109,7 +109,7 @@
                             <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
                                 <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i> Target Budget Bulanan
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Pantau capaian target / pembatasan anggaran</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Kelola target & input tabungan per bank/rekening</p>
                         </div>
                         <button onclick="openTargetModal()" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition">
                             <i class="fa-solid fa-plus mr-1"></i> Target Baru
@@ -288,26 +288,18 @@
         </div>
     </div>
 
-    <!-- MODAL SET TARGET BUDGET (SISTEM AKURAT REVISI) -->
+    <!-- MODAL SET TARGET BUDGET BARU -->
     <div id="target-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Set Target Budget Baru</h3>
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block mb-1 text-slate-500">Nama Target / Goal</label>
-                    <input type="text" id="target-name" placeholder="Contoh: Tabungan Motor / Batas Makan" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                    <input type="text" id="target-name" placeholder="Contoh: Tabungan Motor / Dana Darurat" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block mb-1 text-slate-500">Jenis Target</label>
-                    <select id="target-mode" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
-                        <option value="income">Target Total Pemasukan</option>
-                        <option value="expense">Batas Maksimal Pengeluaran</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block mb-1 text-slate-500">Bank / Tempat Simpan (Opsional)</label>
+                    <label class="block mb-1 text-slate-500">Disimpan di Bank / E-Wallet</label>
                     <select id="target-bank" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none">
-                        <option value="Umum">Semua Rekening (Umum)</option>
                         <option value="BCA">Bank BCA</option>
                         <option value="Mandiri">Bank Mandiri</option>
                         <option value="BRI">Bank BRI</option>
@@ -343,13 +335,36 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block mb-1 text-slate-500">Target Nominal (Rp)</label>
+                    <label class="block mb-1 text-slate-500">Target Nominal Akhir (Rp)</label>
                     <input type="text" id="target-amount" oninput="formatRupiahInput(this)" placeholder="Rp 10.000.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold">
                 </div>
             </div>
             <div class="flex items-center gap-3 mt-6">
                 <button onclick="closeTargetModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
                 <button onclick="saveTargetBudget()" class="flex-1 py-2.5 px-4 bg-indigo-600 text-white text-xs font-semibold rounded-xl">Simpan Target</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INPUT NOMINAL TABUNGAN KE TARGET (BARU) -->
+    <div id="add-target-savings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
+            <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-piggy-bank"></i>
+            </div>
+            <h3 class="text-base font-bold text-center text-slate-900 dark:text-white mb-1">Tambah Tabungan Target</h3>
+            <p id="target-deposit-name" class="text-xs text-center text-slate-500 mb-4">-</p>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block mb-1 text-slate-500">Nominal Disetorkan (Rp)</label>
+                    <input type="text" id="deposit-amount" oninput="formatRupiahInput(this)" placeholder="Rp 500.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold text-slate-800 dark:text-white">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-6">
+                <button onclick="closeTargetDepositModal()" class="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Batal</button>
+                <button onclick="submitTargetDeposit()" class="flex-1 py-2.5 px-4 bg-emerald-600 text-white text-xs font-semibold rounded-xl shadow-md">Tambah Uang</button>
             </div>
         </div>
     </div>
@@ -455,6 +470,7 @@
         let flowBarChartInstance = null;
         let pendingDeleteId = null;
         let activePayDebtId = null;
+        let activeTargetDepositId = null;
         
         let targetBudgets = JSON.parse(localStorage.getItem('target_budgets_data') || '[]');
         let debts = JSON.parse(localStorage.getItem('debts_data') || '[]');
@@ -525,14 +541,13 @@
 
         function saveTargetBudget() {
             const name = document.getElementById('target-name').value || 'Target Utama';
-            const mode = document.getElementById('target-mode').value || 'income';
-            const bank = document.getElementById('target-bank').value || 'Umum';
+            const bank = document.getElementById('target-bank').value || 'BCA';
             const month = Number(document.getElementById('target-month').value);
             const year = Number(document.getElementById('target-year').value);
             const amount = parseRupiahNumber(document.getElementById('target-amount').value);
 
             if (amount > 0) {
-                targetBudgets.push({ id: Date.now(), name, mode, bank, month, year, amount });
+                targetBudgets.push({ id: Date.now(), name, bank, month, year, amount, currentSaved: 0 });
                 localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
                 closeTargetModal();
                 document.getElementById('target-name').value = '';
@@ -547,6 +562,38 @@
             renderTargets();
         }
 
+        // Buka Modal Deposit Tabungan Ke Target
+        function openTargetDepositModal(id, name) {
+            activeTargetDepositId = id;
+            document.getElementById('target-deposit-name').innerText = `Target: ${name}`;
+            document.getElementById('deposit-amount').value = '';
+            document.getElementById('add-target-savings-modal').classList.remove('hidden');
+        }
+
+        function closeTargetDepositModal() {
+            activeTargetDepositId = null;
+            document.getElementById('add-target-savings-modal').classList.add('hidden');
+        }
+
+        function submitTargetDeposit() {
+            if (!activeTargetDepositId) return;
+
+            const depositVal = parseRupiahNumber(document.getElementById('deposit-amount').value);
+            if (depositVal <= 0) return;
+
+            targetBudgets = targetBudgets.map(t => {
+                if (t.id === activeTargetDepositId) {
+                    const updatedSaved = (t.currentSaved || 0) + depositVal;
+                    return { ...t, currentSaved: updatedSaved };
+                }
+                return t;
+            });
+
+            localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
+            closeTargetDepositModal();
+            renderTargets();
+        }
+
         function renderTargets() {
             const container = document.getElementById('target-list-container');
             if (targetBudgets.length === 0) {
@@ -556,15 +603,9 @@
 
             let html = '';
             targetBudgets.forEach(t => {
-                // Hitung realisasi transaksi dari Telegram berdasarkan Tipe & Periode
-                const currentRealized = globalTransactions.filter(item => {
-                    if (item.type !== t.mode || !item.created_at) return false;
-                    const d = new Date(item.created_at);
-                    return d.getMonth() === t.month && d.getFullYear() === t.year;
-                }).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-
-                const percent = Math.min(Math.round((currentRealized / t.amount) * 100), 100);
-                const isIncome = t.mode === 'income';
+                const currentSaved = t.currentSaved || 0;
+                const percent = Math.min(Math.round((currentSaved / t.amount) * 100), 100);
+                const safeName = t.name.replace(/'/g, "\\'");
 
                 html += `
                     <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700/80 space-y-2">
@@ -572,23 +613,28 @@
                             <div>
                                 <span class="font-bold text-slate-800 dark:text-slate-200 block">${t.name}</span>
                                 <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="text-[10px] ${isIncome ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'} font-bold px-1.5 py-0.5 rounded">
-                                        ${isIncome ? 'Target Pemasukan' : 'Batas Pengeluaran'}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-medium">• ${t.bank} (${monthNames[t.month]} ${t.year})</span>
+                                    <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold px-1.5 py-0.5 rounded">${t.bank}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium">• ${monthNames[t.month]} ${t.year}</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${percent}%</span>
+                                <span class="text-indigo-600 font-bold text-xs">${percent}%</span>
                                 <button onclick="removeTarget(${t.id})" class="text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
+
                         <div class="w-full bg-slate-200 dark:bg-slate-600 h-2.5 rounded-full overflow-hidden">
-                            <div class="${isIncome ? 'bg-emerald-500' : 'bg-rose-500'} h-full transition-all duration-300" style="width: ${percent}%"></div>
+                            <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${percent}%"></div>
                         </div>
-                        <div class="flex justify-between text-[11px] text-slate-400">
-                            <span>Tercapai: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(currentRealized)}</strong></span>
-                            <span>Target: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(t.amount)}</strong></span>
+
+                        <div class="flex justify-between items-center text-[11px] pt-1">
+                            <div class="text-slate-400">
+                                <span>Terkumpul: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">${formatRupiah(currentSaved)}</strong></span> /
+                                <span>Target: <strong class="text-slate-600 dark:text-slate-300">${formatRupiah(t.amount)}</strong></span>
+                            </div>
+                            <button onclick="openTargetDepositModal(${t.id}, '${safeName}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[10px] rounded-lg shadow-sm transition">
+                                + Input Uang
+                            </button>
                         </div>
                     </div>
                 `;
