@@ -13,8 +13,9 @@
     </script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js CDN -->
+    <!-- Chart.js & Datalabels CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <style>
         .modal-animate {
             animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -123,14 +124,46 @@
                 </div>
             </div>
 
-            <!-- Cash Flow Statement + Bar Chart -->
-            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700">
-                <h3 class="font-bold text-slate-800 dark:text-white text-base mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-column text-indigo-600 dark:text-indigo-400"></i> Flow & Statement Graphic
-                </h3>
-                <p class="text-xs text-slate-400 mb-4">Perbandingan Visual Cashflow</p>
-                <div class="relative w-full h-52">
-                    <canvas id="flowBarChart"></canvas>
+            <!-- Cash Flow Statement + Bar Chart dengan Filter Bulan/Tahun -->
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-indigo-600 dark:text-indigo-400"></i> Flow & Statement
+                            </h3>
+                            <p class="text-xs text-slate-400">Laporan Grafik Nominal Rupiah</p>
+                        </div>
+                        
+                        <!-- Filter Bulan & Tahun -->
+                        <div class="flex items-center gap-2">
+                            <select id="filter-month" onchange="updateFlowBarChart()" class="p-1.5 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none">
+                                <option value="all">Semua Bulan</option>
+                                <option value="0">Januari</option>
+                                <option value="1">Februari</option>
+                                <option value="2">Maret</option>
+                                <option value="3">April</option>
+                                <option value="4">Mei</option>
+                                <option value="5">Juni</option>
+                                <option value="6">Juli</option>
+                                <option value="7">Agustus</option>
+                                <option value="8">September</option>
+                                <option value="9">Oktober</option>
+                                <option value="10">November</option>
+                                <option value="11">Desember</option>
+                            </select>
+
+                            <select id="filter-year" onchange="updateFlowBarChart()" class="p-1.5 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none">
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full h-56">
+                        <canvas id="flowBarChart"></canvas>
+                    </div>
                 </div>
             </div>
         </section>
@@ -229,7 +262,7 @@
         </button>
     </div>
 
-    <!-- MODAL MENU INPUT UTAMA (CENTERED & PROFESSIONAL) -->
+    <!-- MODAL MENU INPUT UTAMA -->
     <div id="input-menu-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 modal-animate">
             <div class="flex justify-between items-center mb-5 border-b border-slate-100 dark:border-slate-700 pb-3">
@@ -257,11 +290,15 @@
         </div>
     </div>
 
-    <!-- MODAL SET TARGET BUDGET (MENGATUR BULAN & TAHUN) -->
+    <!-- MODAL SET TARGET BUDGET (NAMA TARGET, BULAN, TAHUN, NOMINAL RUPIAH) -->
     <div id="target-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 modal-animate">
             <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Set Target Budget Baru</h3>
             <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block mb-1 text-slate-500">Nama Target / Goal</label>
+                    <input type="text" id="target-name" placeholder="Contoh: Beli Motor / Tabungan Umroh" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block mb-1 text-slate-500">Bulan</label>
@@ -286,8 +323,8 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block mb-1 text-slate-500">Target Uang (Rp)</label>
-                    <input type="number" id="target-amount" placeholder="10000000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                    <label class="block mb-1 text-slate-500">Target Nominal (Rp)</label>
+                    <input type="text" id="target-amount" oninput="formatRupiahInput(this)" placeholder="Rp 10.000.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold">
                 </div>
             </div>
             <div class="flex items-center gap-3 mt-6">
@@ -325,7 +362,7 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block mb-1 text-slate-500">Nama Orang/Lembaga</label>
-                    <input type="text" id="debt-name" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                    <input type="text" id="debt-name" placeholder="Contoh: Budi / Bank" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block mb-1 text-slate-500">Jenis</label>
@@ -336,7 +373,7 @@
                 </div>
                 <div>
                     <label class="block mb-1 text-slate-500">Jumlah Total (Rp)</label>
-                    <input type="number" id="debt-amount" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500">
+                    <input type="text" id="debt-amount" oninput="formatRupiahInput(this)" placeholder="Rp 500.000" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 font-semibold">
                 </div>
             </div>
             <div class="flex items-center gap-3 mt-6">
@@ -357,6 +394,21 @@
         let globalTransactions = [];
 
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        // Format Input Menggunakan Masking Rupiah Otomatis
+        function formatRupiahInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            input.value = 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+        }
+
+        function parseRupiahNumber(str) {
+            if (!str) return 0;
+            return Number(str.replace(/\D/g, '')) || 0;
+        }
 
         // Mode Gelap / Terang
         function toggleDarkMode() {
@@ -399,7 +451,7 @@
             }
         }
 
-        // Modals Centered Handler
+        // Modals Handler
         function openInputMenuModal() { document.getElementById('input-menu-modal').classList.remove('hidden'); }
         function closeInputMenuModal() { document.getElementById('input-menu-modal').classList.add('hidden'); }
 
@@ -407,16 +459,17 @@
         function closeTargetModal() { document.getElementById('target-modal').classList.add('hidden'); }
 
         function saveTargetBudget() {
+            const name = document.getElementById('target-name').value || 'Target Unggulan';
             const month = Number(document.getElementById('target-month').value);
             const year = Number(document.getElementById('target-year').value);
-            const amount = Number(document.getElementById('target-amount').value);
+            const amount = parseRupiahNumber(document.getElementById('target-amount').value);
 
             if (amount > 0) {
-                // Hapus jika sudah ada periode yang sama
-                targetBudgets = targetBudgets.filter(t => !(t.month === month && t.year === year));
-                targetBudgets.push({ id: Date.now(), month, year, amount });
+                targetBudgets.push({ id: Date.now(), name, month, year, amount });
                 localStorage.setItem('target_budgets_data', JSON.stringify(targetBudgets));
                 closeTargetModal();
+                document.getElementById('target-name').value = '';
+                document.getElementById('target-amount').value = '';
                 renderTargets();
             }
         }
@@ -436,7 +489,6 @@
 
             let html = '';
             targetBudgets.forEach(t => {
-                // Hitung pencapaian pemasukan di bulan & tahun ini
                 const currentIncome = globalTransactions.filter(item => {
                     if (item.type !== 'income' || !item.created_at) return false;
                     const d = new Date(item.created_at);
@@ -448,9 +500,12 @@
                 html += `
                     <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700/80 space-y-2">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-slate-800 dark:text-slate-200">${monthNames[t.month]} ${t.year}</span>
+                            <div>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block">${t.name}</span>
+                                <span class="text-[10px] text-indigo-500 font-semibold">${monthNames[t.month]} ${t.year}</span>
+                            </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-indigo-600 font-semibold">${percent}%</span>
+                                <span class="text-indigo-600 font-bold">${percent}%</span>
                                 <button onclick="removeTarget(${t.id})" class="text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
@@ -474,20 +529,22 @@
         function saveDebt() {
             const name = document.getElementById('debt-name').value;
             const type = document.getElementById('debt-type').value;
-            const amount = Number(document.getElementById('debt-amount').value);
+            const amount = parseRupiahNumber(document.getElementById('debt-amount').value);
 
             if (name && amount > 0) {
                 debts.push({ id: Date.now(), name, type, amount });
                 localStorage.setItem('debts_data', JSON.stringify(debts));
                 closeDebtModal();
+                document.getElementById('debt-name').value = '';
+                document.getElementById('debt-amount').value = '';
                 renderDebts();
             }
         }
 
         function payInstallment(id) {
             const payVal = prompt('Masukkan jumlah cicilan/pembayaran (Rp):');
-            if (payVal && !isNaN(payVal)) {
-                const amount = Number(payVal);
+            if (payVal) {
+                const amount = parseRupiahNumber(payVal);
                 debts = debts.map(item => {
                     if (item.id === id) {
                         const newAmount = item.amount - amount;
@@ -620,14 +677,45 @@
 
             tableBody.innerHTML = rowsHtml;
             renderChart(categoryTotals);
-            renderFlowBarChart(totalIncome, totalExpense, netBalance);
+            updateFlowBarChart();
             renderTargets();
         }
 
-        // Render Grafik Bar Cash Flow Statement
+        // Update Flow Bar Chart Berdasarkan Filter Bulan & Tahun
+        function updateFlowBarChart() {
+            const selectedMonth = document.getElementById('filter-month').value;
+            const selectedYear = Number(document.getElementById('filter-year').value);
+
+            let filteredInc = 0;
+            let filteredExp = 0;
+
+            globalTransactions.forEach(item => {
+                if (!item.created_at) return;
+                const date = new Date(item.created_at);
+                
+                const matchYear = date.getFullYear() === selectedYear;
+                const matchMonth = selectedMonth === 'all' || date.getMonth() === Number(selectedMonth);
+
+                if (matchYear && matchMonth) {
+                    const amount = Number(item.amount) || 0;
+                    if (item.type === 'income') {
+                        filteredInc += amount;
+                    } else {
+                        filteredExp += amount;
+                    }
+                }
+            });
+
+            const filteredNet = filteredInc - filteredExp;
+            renderFlowBarChart(filteredInc, filteredExp, filteredNet);
+        }
+
+        // Render Grafik Bar Flow Statement dengan Label Nominal Rupiah
         function renderFlowBarChart(income, expense, net) {
             const ctx = document.getElementById('flowBarChart').getContext('2d');
             if (flowBarChartInstance) flowBarChartInstance.destroy();
+
+            Chart.register(ChartDataLabels);
 
             flowBarChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -642,7 +730,19 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'start',
+                            offset: -20,
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: function(value) {
+                                return formatRupiah(value);
+                            }
+                        }
+                    },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -669,7 +769,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
+                    plugins: { 
+                        legend: { position: 'bottom' },
+                        datalabels: { display: false }
+                    },
                     cutout: '70%'
                 }
             });
