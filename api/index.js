@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Tangani GET untuk tes status
   if (req.method === 'GET') {
     return res.status(200).json({ status: 'Bot API is online' });
   }
@@ -26,7 +25,6 @@ export default async function handler(req, res) {
       const text = update.message.text.trim();
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
-      // Fungsi kirim balasan Telegram
       const replyTelegram = async (msg) => {
         if (!botToken) return;
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -37,7 +35,7 @@ export default async function handler(req, res) {
       };
 
       if (text.toLowerCase() === '/start') {
-        await replyTelegram("Halo! Bot keuangan aktif. Silakan ketik transaksi Anda.\nContoh: makan 25000\nAtau: pemasukan gaji 5000000 : Gaji");
+        await replyTelegram("Halo! Bot keuangan aktif. Silakan ketik transaksi Anda.\nContoh: makan 400k\nAtau: pemasukan gaji 5jt : Gaji");
         return res.status(200).json({ success: true });
       }
 
@@ -53,30 +51,44 @@ export default async function handler(req, res) {
         cleanText = text.replace(/^pengeluaran\s*/i, '');
       }
 
-      let title = cleanText;
-      let amount = 0;
-
       if (cleanText.includes(':')) {
         const parts = cleanText.split(':');
         category = parts[1].trim();
         cleanText = parts[0].trim();
       }
 
-      const words = cleanText.split(' ');
-      const lastWord = words[words.length - 1].replace(/\D/g, '');
-      
-      if (lastWord) {
-        amount = Number(lastWord);
-        words.pop();
-        title = words.join(' ');
-      }
+      const words = cleanText.trim().split(/\s+/);
+      const rawAmountStr = words.pop(); // Ambil kata terakhir sebagai nominal
+      let title = words.join(' ');
+
+      // Fungsi konverter angka (mendukung k, rb, jt, dan titik/koma)
+      const parseAmount = (str) => {
+        if (!str) return 0;
+        let lower = str.toLowerCase().replace(/rp/g, '').trim();
+        let multiplier = 1;
+
+        if (lower.endsWith('jt')) {
+          multiplier = 1000000;
+          lower = lower.replace('jt', '');
+        } else if (lower.endsWith('k') || lower.endsWith('rb')) {
+          multiplier = 1000;
+          lower = lower.replace('k', '').replace('rb', '');
+        }
+
+        // Bersihkan karakter non-angka kecuali titik/koma
+        let cleanNum = lower.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+        let num = parseFloat(cleanNum);
+        return isNaN(num) ? 0 : Math.round(num * multiplier);
+      };
+
+      let amount = parseAmount(rawAmountStr);
 
       if (!title || amount <= 0) {
-        await replyTelegram("Format tidak valid! Contoh: makan 15000 atau pemasukan gaji 2000000 : Gaji");
+        await replyTelegram("Format tidak valid! Contoh: makan 400k atau pemasukan gaji 5jt");
         return res.status(200).json({ success: true });
       }
 
-      // Simpan ke database jika DATABASE_URL ada
+      // Simpan ke database Neon DB
       const databaseUrl = process.env.DATABASE_URL;
       if (databaseUrl) {
         try {
@@ -95,8 +107,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error('Server Crash Error:', error);
-      // Selalu kembalikan status 200 agar Telegram tidak menganggap server down (Error 500)
+      console.error('Server Error:', error);
       return res.status(200).json({ error: error.message });
     }
   }
